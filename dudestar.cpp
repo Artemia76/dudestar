@@ -1087,12 +1087,13 @@ void DudeStar::process_settings()
 		if(f.open(QIODevice::ReadOnly)){
 			while(!f.atEnd()){
 				QString s = f.readLine();
+                s.remove('\n');
 				QStringList sl = s.split(':');
 				if(sl.at(0) == "PLAYBACK"){
-					ui->comboPlayback->setCurrentText(sl.at(1).simplified());
+                    ui->comboPlayback->setCurrentText(sl.at(1));
 				}
 				if(sl.at(0) == "CAPTURE"){
-					ui->comboCapture->setCurrentText(sl.at(1).simplified());
+                    ui->comboCapture->setCurrentText(sl.at(1));
 				}
 				if(sl.at(0) == "MODE"){
 					ui->comboMode->blockSignals(true);
