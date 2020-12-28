@@ -287,7 +287,7 @@ float Cnlp::nlp(
 		m /= 2;
 		n /= 2;
 
-		float Sn8k[n];
+        float* Sn8k = new float[n];
 		fdmdv_16_to_8(Sn8k, &snlp.Sn16k[FDMDV_OS_TAPS_16K], n);
 
 		/* Square latest input samples */
@@ -297,6 +297,7 @@ float Cnlp::nlp(
 			snlp.sq[i] = Sn8k[j]*Sn8k[j];
 		}
 		assert(j <= n);
+        delete[] Sn8k;
 	}
 
 	for(i=m-n; i<m; i++)  	/* notch filter at DC */

@@ -159,8 +159,13 @@ void Clpc::levinson_durbin(
 	int order		/* order of the LPC analysis */
 )
 {
-	float a[order+1][order+1];
-	float sum, e, k;
+
+    float** a = new float*[order+1];
+    for(int i = 0; i < (order+1); ++i) {
+        a[i] = new float[order+1];
+    }
+
+    float sum, e, k;
 	int i,j;				/* loop variables */
 
 	e = R[0];				/* Equation 38a, Makhoul */
@@ -169,7 +174,7 @@ void Clpc::levinson_durbin(
 	{
 		sum = 0.0;
 		for(j=1; j<=i-1; j++)
-			sum += a[i-1][j]*R[i-j];
+            sum += a[i-1][j]*R[i-j];
 		k = -1.0*(R[i] + sum)/e;		/* Equation 38b, Makhoul */
 		if (fabsf(k) > 1.0)
 			k = 0.0;
@@ -185,6 +190,10 @@ void Clpc::levinson_durbin(
 	for(i=1; i<=order; i++)
 		lpcs[i] = a[order][i];
 	lpcs[0] = 1.0;
+    for(int i = 0; i < (order+1); ++i) {
+        delete[] a[i];
+    }
+    delete[] a;
 }
 
 /*---------------------------------------------------------------------------*\
@@ -273,7 +282,7 @@ void Clpc::find_aks(
 )
 {
 	float Wn[LPC_MAX_N];	/* windowed frame of Nsam speech samples */
-	float R[order+1];	/* order+1 autocorrelation values of Sn[] */
+    float* R= new float[order+1];	/* order+1 autocorrelation values of Sn[] */
 	int i;
 
 	assert(Nsam < LPC_MAX_N);
@@ -286,7 +295,8 @@ void Clpc::find_aks(
 	for(i=0; i<=order; i++)
 		*E += a[i]*R[i];
 	if (*E < 0.0)
-		*E = 1E-12;
+        *E = 1E-12f;
+    delete[] R;
 }
 
 /*---------------------------------------------------------------------------*\

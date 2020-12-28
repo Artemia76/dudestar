@@ -16,6 +16,7 @@
  */
 
 #include <stdlib.h>
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include "ambe.h"
 //#include "ambe3600x2250_const.h"

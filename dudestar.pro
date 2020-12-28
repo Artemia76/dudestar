@@ -4,7 +4,11 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = dudestar
 TEMPLATE = app
-VERSION_BUILD='$(shell cd $$PWD;git rev-parse --short HEAD)'
+win32 {
+    VERSION_BUILD='$$system(cd $$PWD && git rev-parse --short HEAD)'
+} else {
+    VERSION_BUILD='$(shell cd $$PWD;git rev-parse --short HEAD)'
+}
 DEFINES += QT_DEPRECATED_WARNINGS
 DEFINES += VERSION_NUMBER=\"\\\"$${VERSION_BUILD}\\\"\"
 #DEFINES += USE_FLITE

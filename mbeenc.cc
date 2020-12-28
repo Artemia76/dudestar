@@ -22,11 +22,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <cmath>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include "mbeenc.h"
 #include "Golay24128.h"

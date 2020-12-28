@@ -69,11 +69,11 @@ int CQuantize::lspd_bits(int i)
 void CQuantize::encode_lspds_scalar(int indexes[], float lsp[], int order)
 {
 	int   i,k,m;
-	float lsp_hz[order];
-	float lsp__hz[order];
-	float dlsp[order];
-	float dlsp_[order];
-	float wt[order];
+    float* lsp_hz = new float[order];
+    float* lsp__hz = new float[order];
+    float* dlsp = new float[order];
+    float* dlsp_ = new float[order];
+    float* wt=new float[order];
 	const float *cb;
 	float se;
 
@@ -111,6 +111,12 @@ void CQuantize::encode_lspds_scalar(int indexes[], float lsp[], int order)
 		else
 			lsp__hz[0] = dlsp_[0];
 	}
+    delete[] lsp_hz;
+    delete[] lsp__hz;
+    delete[] dlsp;
+    delete[] dlsp_;
+    delete[] wt;
+
 
 }
 
@@ -118,8 +124,8 @@ void CQuantize::encode_lspds_scalar(int indexes[], float lsp[], int order)
 void CQuantize::decode_lspds_scalar( float lsp_[], int indexes[], int   order)
 {
 	int   i,k;
-	float lsp__hz[order];
-	float dlsp_[order];
+    float* lsp__hz = new float[order];
+    float* dlsp_ = new float[order];
 	const float *cb;
 
 	for(i=0; i<order; i++)
@@ -134,9 +140,10 @@ void CQuantize::decode_lspds_scalar( float lsp_[], int indexes[], int   order)
 		else
 			lsp__hz[0] = dlsp_[0];
 
-		lsp_[i] = (PI/4000.0)*lsp__hz[i];
+        lsp_[i] = (PI/4000.0f)*lsp__hz[i];
 	}
-
+    delete[] lsp__hz;
+    delete[] dlsp_;
 }
 
 #define MIN(a,b) ((a)<(b)?(a):(b))
@@ -492,8 +499,8 @@ float CQuantize::decode_Wo(C2CONST *c2const, int index, int bits)
 float CQuantize::speech_to_uq_lsps(float lsp[], float ak[], float Sn[], float w[], int m_pitch, int order)
 {
 	int   i, roots;
-	float Wn[m_pitch];
-	float R[order+1];
+    float* Wn = new float[m_pitch];
+    float* R = new float[order+1];
 	float e, E;
 	Clpc lpc;
 
@@ -535,7 +542,8 @@ float CQuantize::speech_to_uq_lsps(float lsp[], float ak[], float Sn[], float w[
 		for(i=0; i<order; i++)
 			lsp[i] = (PI/order)*(float)i;
 	}
-
+    delete[] Wn;
+    delete[] R;
 	return E;
 }
 
@@ -554,7 +562,7 @@ void CQuantize::encode_lsps_scalar(int indexes[], float lsp[], int order)
 {
 	int    i,k,m;
 	float  wt[1];
-	float  lsp_hz[order];
+    float* lsp_hz = new float [order];
 	const float *cb;
 	float se;
 
@@ -574,6 +582,7 @@ void CQuantize::encode_lsps_scalar(int indexes[], float lsp[], int order)
 		cb = lsp_cb[i].cb;
 		indexes[i] = quantise(cb, &lsp_hz[i], wt, k, m, &se);
 	}
+    delete[] lsp_hz;
 }
 
 /*---------------------------------------------------------------------------*\
@@ -590,7 +599,7 @@ void CQuantize::encode_lsps_scalar(int indexes[], float lsp[], int order)
 void CQuantize::decode_lsps_scalar(float lsp[], int indexes[], int order)
 {
 	int    i,k;
-	float  lsp_hz[order];
+    float* lsp_hz = new float[order];
 	const float *cb;
 
 	for(i=0; i<order; i++)
@@ -604,6 +613,7 @@ void CQuantize::decode_lsps_scalar(float lsp[], int indexes[], int order)
 
 	for(i=0; i<order; i++)
 		lsp[i] = (PI/4000.0)*lsp_hz[i];
+    delete[] lsp_hz;
 }
 
 /*---------------------------------------------------------------------------*\
@@ -740,8 +750,8 @@ int CQuantize::lpc_to_lsp(float *a, int order, float *freq, int nb, float delta)
 	float *pt;                	/* ptr used for cheb_poly_eval()
 				   whether P' or Q' 			*/
 	int roots=0;              	/* number of roots found 	        */
-	float Q[order + 1];
-	float P[order + 1];
+    float* Q=new float[order + 1];
+    float* P=new float[order + 1];
 
 	flag = 1;
 	m = order/2;            	/* order of P'(z) & Q'(z) polynimials 	*/
@@ -846,7 +856,8 @@ int CQuantize::lpc_to_lsp(float *a, int order, float *freq, int nb, float delta)
 	{
 		freq[i] = acosf(freq[i]);
 	}
-
+    delete [] Q;
+    delete [] P;
 	return(roots);
 }
 
@@ -870,7 +881,7 @@ float CQuantize::cheb_poly_eva(float *coef,float x,int order)
 {
 	int i;
 	float *t,*u,*v,sum;
-	float T[(order / 2) + 1];
+    float *T = new float[(order / 2) + 1];
 
 	/* Initialise pointers */
 
@@ -892,6 +903,6 @@ float CQuantize::cheb_poly_eva(float *coef,float x,int order)
 
 	for(i=0; i<=order/2; i++)
 		sum+=coef[(order/2)-i]**t++;
-
+    delete[] T;
 	return sum;
 }
