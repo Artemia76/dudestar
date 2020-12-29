@@ -2,18 +2,102 @@ QT       += core gui network serialport multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = dudestar
-TEMPLATE = app
+#Extract Git version from Tag
 win32 {
-    VERSION_BUILD='$$system(cd $$PWD && git rev-parse --short HEAD)'
+    GIT_VERSION=$$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --tags)
 } else {
-    VERSION_BUILD='$(shell cd $$PWD;git rev-parse --short HEAD)'
+    GIT_VERSION='$(shell cd $$PWD;git --work-tree $$PWD describe --abbrev=0 --tags)'
 }
-DEFINES += QT_DEPRECATED_WARNINGS
-DEFINES += VERSION_NUMBER=\"\\\"$${VERSION_BUILD}\\\"\"
+
+isEmpty(GIT_VERSION) {
+# Application Version
+  VERSION_MAJOR = 0
+  VERSION_MINOR = 0
+  VERSION_BUILD = 1
+} else {
+  VERSIONS = $$split(GIT_VERSION, ".")
+  VERSION_MAJOR = $$member(VERSIONS, 0)
+  VERSION_MINOR = $$member(VERSIONS, 1)
+  VERSION_BUILD = $$member(VERSIONS, 2)
+  message(Find Git Version : $$VERSIONS)
+}
+
+DEFINES += APP_NAME=\\\"$${TARGET}\\\"
+DEFINES += APP_MAJOR=$$VERSION_MAJOR
+DEFINES += APP_MINOR=$$VERSION_MINOR
+DEFINES += APP_BUILD=$$VERSION_BUILD
+
+DEFINES += GIT_VERSION=\"\\\"$${GIT_VERSION}\\\"\"
+
+QMAKE_EXTRA_TARGETS += versionTarget
+
+#DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += USE_FLITE
 DEFINES += USE_SWTX
-CONFIG += c++11
+
+CONFIG += build_all c++14
+CONFIG -= debug_and_release debug_and_release_target
+
+TARGET = dudestar
+TEMPLATE = app
+
+TRANSLATIONS= \
+    translations/$${TARGET}_fr_FR.ts
+
+# =======================================================================
+# Copy environment variables into qmake variables
+DEPLOY_BASE=$$(DEPLOY_BASE)
+
+
+# =======================================================================
+# Fill defaults for unset
+
+isEmpty(DEPLOY_BASE) : DEPLOY_BASE=$$OUT_PWD/deploy
+
+# =======================================================================
+# Set compiler flags and paths
+
+unix:!macx {
+    isEmpty(GIT_PATH) : GIT_PATH=git
+}
+
+win32 {
+    WINDEPLOY_FLAGS = --compiler-runtime --no-system-d3d-compiler --no-opengl --no-opengl-sw --no-angle
+
+    CONFIG(debug, debug|release) : WINDEPLOY_FLAGS += --debug
+    CONFIG(release, debug|release) : WINDEPLOY_FLAGS += --release
+}
+
+macx {
+    # Mac Specific
+    # Compatibility down to OS X 10.10
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10
+    QT_CONFIG -= no-pkg-config
+
+    LIBS += -framework CoreFoundation
+    isEmpty(GIT_PATH) : GIT_PATH=git
+}
+
+# =======================================================================
+# Print values when running qmake
+!isEqual(QUIET, "true") {
+message(-----------------------------------)
+message(DEPLOY_BASE: $$DEPLOY_BASE)
+message(DEFINES: $$DEFINES)
+message(INCLUDEPATH: $$INCLUDEPATH)
+message(LIBS: $$LIBS)
+message(TARGET_NAME: $$TARGET_NAME)
+message(QT_INSTALL_PREFIX: $$[QT_INSTALL_PREFIX])
+message(QT_INSTALL_LIBS: $$[QT_INSTALL_LIBS])
+message(QT_INSTALL_PLUGINS: $$[QT_INSTALL_PLUGINS])
+message(QT_INSTALL_TRANSLATIONS: $$[QT_INSTALL_TRANSLATIONS])
+message(QT_INSTALL_BINS: $$[QT_INSTALL_BINS])
+message(CONFIG: $$CONFIG)
+message(-----------------------------------)
+}
+
+# =====================================================================
+# Files
 
 SOURCES += \
         CRCenc.cpp \
@@ -79,6 +163,11 @@ SOURCES += \
         xrfcodec.cpp \
         ysfcodec.cpp
 
+macx {
+SOURCES += \
+    tools/keepalive.mm
+}
+
 HEADERS += \
         CRCenc.h \
         DMRData.h \
@@ -139,25 +228,29 @@ HEADERS += \
         m17codec.h \
         mbedec.h \
         mbeenc.h \
+        mbelib.h \
         mbelib_const.h \
         mbelib_parms.h \
         nxdncodec.h \
         p25codec.h \
         refcodec.h \
         serialambe.h \
+        tools/version.h \
         vocoder_tables.h \
         xrfcodec.h \
         ysfcodec.h
 
+macx {
+HEADERS += \
+    tools/keepalive.h
+}
+
 FORMS += \
-    dudestar.ui
+        dudestar.ui
 
-win32:QMAKE_LFLAGS += -static
-
-QMAKE_LFLAGS_WINDOWS += --enable-stdcall-fixup
 
 contains(DEFINES, USE_FLITE){
-	LIBS += -lflite_cmu_us_slt -lflite_cmu_us_kal16 -lflite_cmu_us_awb -lflite_cmu_us_rms -lflite_usenglish -lflite_cmulex -lflite -lasound
+    LIBS += -lflite_cmu_us_slt -lflite_cmu_us_kal16 -lflite_cmu_us_awb -lflite_cmu_us_rms -lflite_usenglish -lflite_cmulex -lflite -lasound
 }
 RC_ICONS = images/dstar.ico
 
@@ -169,4 +262,162 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 RESOURCES += \
     dudestar.qrc
 
-DISTFILES +=
+ICON = images/dstar.png
+
+win32 : RC_FILE = dudestar.rc
+
+OTHER_FILES += \
+    README.md
+
+win32 {
+    OTHER_FILES += dudestar.iss
+}
+
+# =====================================================================
+# Local deployment commands for development
+unix:!macx {
+    copydata.commands += mkdir -p $$OUT_PWD/translations &&
+    copydata.commands += cp -avfu $$PWD/translations/*.qm $$OUT_PWD/translations
+}
+
+# Mac OS X - Copy help and Marble plugins and data
+macx {
+    copydata.commands += cp -vf $$PWD/translations/*.qm $$OUT_PWD/easymorse.app/Contents/Resources
+}
+
+#Windows - Copy Qt Style and translation
+win32 {
+    defineReplace(p){return ($$shell_quote($$shell_path($$1)))}
+    exists($$OUT_PWD/translations) {
+        message("existing")
+    } else {
+        copydata.commands = mkdir $$p($$OUT_PWD/translations) &&
+    }
+    copydata.commands += xcopy /Y $$p($$PWD/translations/*.qm) $$p($$OUT_PWD/translations)
+}
+
+# =====================================================================
+# Deployment commands
+
+#linux make install
+unix:!macx {
+    PREFIX = /usr
+    Binary.path = $${PREFIX}/bin
+    Binary.files = $$OUT_PWD/$${TARGET}
+    INSTALLS += Binary
+
+    Translation.path = $${PREFIX}/share/$${TARGET}/translations
+    Translation.files = $$PWD/translations/*.qm
+    INSTALLS += Translation
+
+    Icons.path = $${PREFIX}/share/icons/hicolor/72x72/apps
+    Icons.files = $$PWD/images/dstar.png
+    INSTALLS += Icons
+
+    Shortcut.path = $${PREFIX}/share/applications
+    Shortcut.files = $$PWD/*.desktop
+    INSTALLS += Shortcut
+}
+
+# Linux specific deploy target
+unix:!macx {
+    DEPLOY_DIR=\"$$DEPLOY_BASE/$$TARGET_NAME\"
+    DEPLOY_DIR_LIB=\"$$DEPLOY_BASE/$$TARGET_NAME/lib\"
+    message(-----------------------------------)
+    message(DEPLOY_DIR: $$DEPLOY_DIR)
+    message(-----------------------------------)
+    deploy.commands += rm -Rfv $$DEPLOY_DIR &&
+    deploy.commands += mkdir -pv $$DEPLOY_DIR_LIB &&
+    deploy.commands += mkdir -pv $$DEPLOY_DIR_LIB/iconengines &&
+    deploy.commands += mkdir -pv $$DEPLOY_DIR_LIB/imageformats &&
+    deploy.commands += mkdir -pv $$DEPLOY_DIR_LIB/platforms &&
+    deploy.commands += mkdir -pv $$DEPLOY_DIR_LIB/platformthemes &&
+    deploy.commands += mkdir -pv $$DEPLOY_DIR_LIB/printsupport &&
+    deploy.commands += cp -Rvf $$OUT_PWD/translations $$DEPLOY_DIR &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_TRANSLATIONS]/qt_??.qm  $$DEPLOY_DIR/translations &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_TRANSLATIONS]/qt_??_??.qm  $$DEPLOY_DIR/translations &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_TRANSLATIONS]/qtbase*.qm  $$DEPLOY_DIR/translations &&
+    deploy.commands += cp -vf $$PWD/desktop/qt.conf $$DEPLOY_DIR &&
+    deploy.commands += cp -vf $$PWD/README.md $$DEPLOY_DIR &&
+    deploy.commands += cp -vf $$PWD/gpl-2.0.md $$DEPLOY_DIR &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/iconengines/libqsvgicon.so*  $$DEPLOY_DIR_LIB/iconengines &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/imageformats/libqgif.so*  $$DEPLOY_DIR_LIB/imageformats &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/imageformats/libqjpeg.so*  $$DEPLOY_DIR_LIB/imageformats &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/imageformats/libqsvg.so*  $$DEPLOY_DIR_LIB/imageformats &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/imageformats/libqwbmp.so*  $$DEPLOY_DIR_LIB/imageformats &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/imageformats/libqwebp.so*  $$DEPLOY_DIR_LIB/imageformats &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/platforms/libqeglfs.so*  $$DEPLOY_DIR_LIB/platforms &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/platforms/libqlinuxfb.so*  $$DEPLOY_DIR_LIB/platforms &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/platforms/libqminimal.so*  $$DEPLOY_DIR_LIB/platforms &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/platforms/libqminimalegl.so*  $$DEPLOY_DIR_LIB/platforms &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/platforms/libqoffscreen.so*  $$DEPLOY_DIR_LIB/platforms &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/platforms/libqxcb.so*  $$DEPLOY_DIR_LIB/platforms &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_PLUGINS]/platformthemes/libqgtk*.so*  $$DEPLOY_DIR_LIB/platformthemes &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libicudata.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libicui18n.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libicuuc.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Concurrent.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Core.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5DBus.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Gui.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Network.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Qml.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Quick.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Script.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Sql.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Svg.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Widgets.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5X11Extras.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5XcbQpa.so*  $$DEPLOY_DIR_LIB &&
+    deploy.commands += cp -vfa $$[QT_INSTALL_LIBS]/libQt5Xml.so* $$DEPLOY_DIR_LIB
+}
+
+# Mac specific deploy target
+macx {
+    DEPLOY_DIR=\"$$PWD/../deploy\"
+    message(-----------------------------------)
+    message(DEPLOY_DIR: $$DEPLOY_DIR)
+    message(-----------------------------------)
+    deploy.commands += rm -Rfv $$DEPLOY_DIR/* &&
+    !exists($$DEPLOY_DIR) : deploy.commands += mkdir -p $$DEPLOY_DIR &&
+    deploy.commands += mkdir -p $$OUT_PWD/dudestar.app/Contents/PlugIns &&
+    deploy.commands += cp -fv $$[QT_INSTALL_TRANSLATIONS]/qt_??.qm  $$OUT_PWD/dudestar.app/Contents/Resources &&
+    deploy.commands += cp -fv $$[QT_INSTALL_TRANSLATIONS]/qt_??_??.qm  $$OUT_PWD/dudestar.app/Contents/Resources &&
+    deploy.commands += cp -fv $$[QT_INSTALL_TRANSLATIONS]/qtbase*.qm  $$OUT_PWD/dudestar.app/Contents/Resources &&
+    deploy.commands += $$[QT_INSTALL_PREFIX]/bin/macdeployqt dudestar.app -always-overwrite -dmg &&
+    deploy.commands += cp -fv $$OUT_PWD/dudestar.dmg $$DEPLOY_DIR/dudestar_$${VERSION_MAJOR}_$${VERSION_MINOR}_$${VERSION_BUILD}_mac.dmg
+}
+
+# Windows specific deploy target
+win32 {
+    defineReplace(p){return ($$shell_quote($$shell_path($$1)))}
+    RC_ICONS = $$p($$PWD/images/dstar.ico)
+    CONFIG(debug, debug|release) : DLL_SUFFIX=d
+    CONFIG(release, debug|release) : DLL_SUFFIX=
+    deploy.commands = ( rmdir /s /q $$p($$DEPLOY_BASE) || echo Directory already empty) &&
+    deploy.commands += mkdir $$p($$DEPLOY_BASE/$$TARGET_NAME/translations) &&
+    deploy.commands += xcopy /Y $$p($$OUT_PWD/$$TARGET.$$TARGET_EXT) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
+    deploy.commands += xcopy /Y $$p($$PWD/README.md) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
+    deploy.commands += xcopy /Y $$p($$PWD/translations/*.qm) $$p($$DEPLOY_BASE/$$TARGET_NAME/translations) &&
+    #deploy.commands += xcopy /Y $$p($$PWD/*.txt) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
+    deploy.commands += xcopy /Y $$p($$PWD/gpl-2.0.md) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
+    deploy.commands += xcopy /Y $$p($$PWD/dudestar.iss) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
+    deploy.commands += xcopy /Y $$p($$PWD/gfx/dstar.ico) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
+    deploy.commands += $$p($$[QT_INSTALL_BINS]/windeployqt) $$WINDEPLOY_FLAGS $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
+    deploy.commands += compil32 /cc $$p($$DEPLOY_BASE/$$TARGET_NAME/dudestar.iss)
+}
+
+# =====================================================================
+# Additional targets
+
+# Need to copy data when compiling
+all.depends = copydata
+
+# Deploy needs compiling before
+deploy.depends = all
+
+QMAKE_EXTRA_TARGETS += deploy copydata all
+
+DISTFILES += \
+    gpl-2.0.md
+

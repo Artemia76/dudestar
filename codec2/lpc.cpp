@@ -49,19 +49,19 @@
 \*---------------------------------------------------------------------------*/
 
 void Clpc::pre_emp(
-	float  Sn_pre[], /* output frame of speech samples                     */
-	float  Sn[],	   /* input frame of speech samples                      */
-	float *mem,      /* Sn[-1]single sample memory                         */
-	int   Nsam	   /* number of speech samples to use                    */
+    double  Sn_pre[], /* output frame of speech samples                     */
+    double  Sn[],	   /* input frame of speech samples                      */
+    double *mem,      /* Sn[-1]single sample memory                         */
+    int   Nsam	   /* number of speech samples to use                    */
 )
 {
-	int   i;
+    int   i;
 
-	for(i=0; i<Nsam; i++)
-	{
-		Sn_pre[i] = Sn[i] - ALPHA * mem[0];
-		mem[0] = Sn[i];
-	}
+    for(i=0; i<Nsam; i++)
+    {
+        Sn_pre[i] = Sn[i] - ALPHA * mem[0];
+        mem[0] = Sn[i];
+    }
 
 }
 
@@ -75,19 +75,19 @@ void Clpc::pre_emp(
 \*---------------------------------------------------------------------------*/
 
 void Clpc::de_emp(
-	float  Sn_de[],  /* output frame of speech samples                     */
-	float  Sn[],	   /* input frame of speech samples                      */
-	float *mem,      /* Sn[-1]single sample memory                         */
-	int    Nsam	   /* number of speech samples to use                    */
+    double  Sn_de[],  /* output frame of speech samples                     */
+    double  Sn[],	   /* input frame of speech samples                      */
+    double *mem,      /* Sn[-1]single sample memory                         */
+    int    Nsam	   /* number of speech samples to use                    */
 )
 {
-	int   i;
+    int   i;
 
-	for(i=0; i<Nsam; i++)
-	{
-		Sn_de[i] = Sn[i] + BETA * mem[0];
-		mem[0] = Sn_de[i];
-	}
+    for(i=0; i<Nsam; i++)
+    {
+        Sn_de[i] = Sn[i] + BETA * mem[0];
+        mem[0] = Sn_de[i];
+    }
 
 }
 
@@ -101,15 +101,15 @@ void Clpc::de_emp(
 \*---------------------------------------------------------------------------*/
 
 void Clpc::hanning_window(
-	float Sn[],	/* input frame of speech samples */
-	float Wn[],	/* output frame of windowed samples */
-	int Nsam	/* number of samples */
+    double Sn[],	/* input frame of speech samples */
+    double Wn[],	/* output frame of windowed samples */
+    int Nsam	/* number of samples */
 )
 {
-	int i;	/* loop variable */
+    int i;	/* loop variable */
 
-	for(i=0; i<Nsam; i++)
-		Wn[i] = Sn[i]*(0.5 - 0.5*cosf(2*PI*(float)i/(Nsam-1)));
+    for(i=0; i<Nsam; i++)
+        Wn[i] = Sn[i]*(0.5 - 0.5*cos(2*PI*(double)i/(Nsam-1)));
 }
 
 /*---------------------------------------------------------------------------*\
@@ -122,20 +122,20 @@ void Clpc::hanning_window(
 \*---------------------------------------------------------------------------*/
 
 void Clpc::autocorrelate(
-	float Sn[],	/* frame of Nsam windowed speech samples */
-	float Rn[],	/* array of P+1 autocorrelation coefficients */
-	int Nsam,	/* number of windowed samples to use */
-	int order	/* order of LPC analysis */
+    double Sn[],	/* frame of Nsam windowed speech samples */
+    double Rn[],	/* array of P+1 autocorrelation coefficients */
+    int Nsam,	/* number of windowed samples to use */
+    int order	/* order of LPC analysis */
 )
 {
-	int i,j;	/* loop variables */
+    int i,j;	/* loop variables */
 
-	for(j=0; j<order+1; j++)
-	{
-		Rn[j] = 0.0;
-		for(i=0; i<Nsam-j; i++)
-			Rn[j] += Sn[i]*Sn[i+j];
-	}
+    for(j=0; j<order+1; j++)
+    {
+        Rn[j] = 0.0;
+        for(i=0; i<Nsam-j; i++)
+            Rn[j] += Sn[i]*Sn[i+j];
+    }
 }
 
 /*---------------------------------------------------------------------------*\
@@ -154,42 +154,42 @@ void Clpc::autocorrelate(
 \*---------------------------------------------------------------------------*/
 
 void Clpc::levinson_durbin(
-	float R[],		/* order+1 autocorrelation coeff */
-	float lpcs[],		/* order+1 LPC's */
-	int order		/* order of the LPC analysis */
+    double R[],		/* order+1 autocorrelation coeff */
+    double lpcs[],		/* order+1 LPC's */
+    int order		/* order of the LPC analysis */
 )
 {
 
-    float** a = new float*[order+1];
+    double** a = new double*[order+1];
     for(int i = 0; i < (order+1); ++i) {
-        a[i] = new float[order+1];
+        a[i] = new double[order+1];
     }
 
-    float sum, e, k;
-	int i,j;				/* loop variables */
+    double sum, e, k;
+    int i,j;				/* loop variables */
 
-	e = R[0];				/* Equation 38a, Makhoul */
+    e = R[0];				/* Equation 38a, Makhoul */
 
-	for(i=1; i<=order; i++)
-	{
-		sum = 0.0;
-		for(j=1; j<=i-1; j++)
+    for(i=1; i<=order; i++)
+    {
+        sum = 0.0;
+        for(j=1; j<=i-1; j++)
             sum += a[i-1][j]*R[i-j];
-		k = -1.0*(R[i] + sum)/e;		/* Equation 38b, Makhoul */
-		if (fabsf(k) > 1.0)
-			k = 0.0;
+        k = -1.0*(R[i] + sum)/e;		/* Equation 38b, Makhoul */
+        if (fabs(k) > 1.0)
+            k = 0.0;
 
-		a[i][i] = k;
+        a[i][i] = k;
 
-		for(j=1; j<=i-1; j++)
-			a[i][j] = a[i-1][j] + k*a[i-1][i-j];	/* Equation 38c, Makhoul */
+        for(j=1; j<=i-1; j++)
+            a[i][j] = a[i-1][j] + k*a[i-1][i-j];	/* Equation 38c, Makhoul */
 
-		e *= (1-k*k);				/* Equation 38d, Makhoul */
-	}
+        e *= (1-k*k);				/* Equation 38d, Makhoul */
+    }
 
-	for(i=1; i<=order; i++)
-		lpcs[i] = a[order][i];
-	lpcs[0] = 1.0;
+    for(i=1; i<=order; i++)
+        lpcs[i] = a[order][i];
+    lpcs[0] = 1.0;
     for(int i = 0; i < (order+1); ++i) {
         delete[] a[i];
     }
@@ -208,21 +208,21 @@ void Clpc::levinson_durbin(
 \*---------------------------------------------------------------------------*/
 
 void Clpc::inverse_filter(
-	float Sn[],	/* Nsam input samples */
-	float a[],	/* LPCs for this frame of samples */
-	int Nsam,	/* number of samples */
-	float res[],	/* Nsam residual samples */
-	int order	/* order of LPC */
+    double Sn[],	/* Nsam input samples */
+    double a[],	/* LPCs for this frame of samples */
+    int Nsam,	/* number of samples */
+    double res[],	/* Nsam residual samples */
+    int order	/* order of LPC */
 )
 {
-	int i,j;	/* loop variables */
+    int i,j;	/* loop variables */
 
-	for(i=0; i<Nsam; i++)
-	{
-		res[i] = 0.0;
-		for(j=0; j<=order; j++)
-			res[i] += Sn[i-j]*a[j];
-	}
+    for(i=0; i<Nsam; i++)
+    {
+        res[i] = 0.0;
+        for(j=0; j<=order; j++)
+            res[i] += Sn[i-j]*a[j];
+    }
 }
 
 /*---------------------------------------------------------------------------*\
@@ -245,23 +245,23 @@ void Clpc::inverse_filter(
 \*---------------------------------------------------------------------------*/
 
 void Clpc::synthesis_filter(
-	float res[],	/* Nsam input residual (excitation) samples */
-	float a[],	/* LPCs for this frame of speech samples */
-	int Nsam,	/* number of speech samples */
-	int order,	/* LPC order */
-	float Sn_[]	/* Nsam output synthesised speech samples */
+    double res[],	/* Nsam input residual (excitation) samples */
+    double a[],	/* LPCs for this frame of speech samples */
+    int Nsam,	/* number of speech samples */
+    int order,	/* LPC order */
+    double Sn_[]	/* Nsam output synthesised speech samples */
 )
 {
-	int i,j;	/* loop variables */
+    int i,j;	/* loop variables */
 
-	/* Filter Nsam samples */
+    /* Filter Nsam samples */
 
-	for(i=0; i<Nsam; i++)
-	{
-		Sn_[i] = res[i]*a[0];
-		for(j=1; j<=order; j++)
-			Sn_[i] -= Sn_[i-j]*a[j];
-	}
+    for(i=0; i<Nsam; i++)
+    {
+        Sn_[i] = res[i]*a[0];
+        for(j=1; j<=order; j++)
+            Sn_[i] -= Sn_[i-j]*a[j];
+    }
 }
 
 /*---------------------------------------------------------------------------*\
@@ -274,27 +274,27 @@ void Clpc::synthesis_filter(
 \*---------------------------------------------------------------------------*/
 
 void Clpc::find_aks(
-	float Sn[],	/* Nsam samples with order sample memory */
-	float a[],	/* order+1 LPCs with first coeff 1.0 */
-	int Nsam,	/* number of input speech samples */
-	int order,	/* order of the LPC analysis */
-	float *E	/* residual energy */
+    double Sn[],	/* Nsam samples with order sample memory */
+    double a[],	/* order+1 LPCs with first coeff 1.0 */
+    int Nsam,	/* number of input speech samples */
+    int order,	/* order of the LPC analysis */
+    double *E	/* residual energy */
 )
 {
-	float Wn[LPC_MAX_N];	/* windowed frame of Nsam speech samples */
-    float* R= new float[order+1];	/* order+1 autocorrelation values of Sn[] */
-	int i;
+    double Wn[LPC_MAX_N];	/* windowed frame of Nsam speech samples */
+    double* R= new double[order+1];	/* order+1 autocorrelation values of Sn[] */
+    int i;
 
-	assert(Nsam < LPC_MAX_N);
+    assert(Nsam < LPC_MAX_N);
 
-	hanning_window(Sn,Wn,Nsam);
-	autocorrelate(Wn,R,Nsam,order);
-	levinson_durbin(R,a,order);
+    hanning_window(Sn,Wn,Nsam);
+    autocorrelate(Wn,R,Nsam,order);
+    levinson_durbin(R,a,order);
 
-	*E = 0.0;
-	for(i=0; i<=order; i++)
-		*E += a[i]*R[i];
-	if (*E < 0.0)
+    *E = 0.0;
+    for(i=0; i<=order; i++)
+        *E += a[i]*R[i];
+    if (*E < 0.0)
         *E = 1E-12f;
     delete[] R;
 }
@@ -308,14 +308,14 @@ void Clpc::find_aks(
 \*---------------------------------------------------------------------------*/
 
 void Clpc::weight(
-	float ak[],	/* vector of order+1 LPCs */
-	float gamma,	/* weighting factor */
-	int order,	/* num LPCs (excluding leading 1.0) */
-	float akw[]	/* weighted vector of order+1 LPCs */
+    double ak[],	/* vector of order+1 LPCs */
+    double gamma,	/* weighting factor */
+    int order,	/* num LPCs (excluding leading 1.0) */
+    double akw[]	/* weighted vector of order+1 LPCs */
 )
 {
-	int i;
+    int i;
 
-	for(i=1; i<=order; i++)
-		akw[i] = ak[i]*powf(gamma,(float)i);
+    for(i=1; i<=order; i++)
+        akw[i] = ak[i]*pow(gamma,(double)i);
 }

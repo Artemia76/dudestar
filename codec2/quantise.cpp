@@ -48,12 +48,12 @@ extern CKissFFT kiss;
 
 int CQuantize::lsp_bits(int i)
 {
-	return lsp_cb[i].log2m;
+    return lsp_cb[i].log2m;
 }
 
 int CQuantize::lspd_bits(int i)
 {
-	return lsp_cbd[i].log2m;
+    return lsp_cbd[i].log2m;
 }
 
 
@@ -66,51 +66,51 @@ int CQuantize::lspd_bits(int i)
 
 \*---------------------------------------------------------------------------*/
 
-void CQuantize::encode_lspds_scalar(int indexes[], float lsp[], int order)
+void CQuantize::encode_lspds_scalar(int indexes[], double lsp[], int order)
 {
-	int   i,k,m;
-    float* lsp_hz = new float[order];
-    float* lsp__hz = new float[order];
-    float* dlsp = new float[order];
-    float* dlsp_ = new float[order];
-    float* wt=new float[order];
-	const float *cb;
-	float se;
+    int   i,k,m;
+    double* lsp_hz = new double[order];
+    double* lsp__hz = new double[order];
+    double* dlsp = new double[order];
+    double* dlsp_ = new double[order];
+    double* wt=new double[order];
+    const double *cb;
+    double se;
 
-	for(i=0; i<order; i++)
-	{
-		wt[i] = 1.0;
-	}
+    for(i=0; i<order; i++)
+    {
+        wt[i] = 1.0;
+    }
 
-	/* convert from radians to Hz so we can use human readable
-	   frequencies */
+    /* convert from radians to Hz so we can use human readable
+       frequencies */
 
-	for(i=0; i<order; i++)
-		lsp_hz[i] = (4000.0/PI)*lsp[i];
+    for(i=0; i<order; i++)
+        lsp_hz[i] = (4000.0/PI)*lsp[i];
 
-	wt[0] = 1.0;
-	for(i=0; i<order; i++)
-	{
+    wt[0] = 1.0;
+    for(i=0; i<order; i++)
+    {
 
-		/* find difference from previous qunatised lsp */
+        /* find difference from previous qunatised lsp */
 
-		if (i)
-			dlsp[i] = lsp_hz[i] - lsp__hz[i-1];
-		else
-			dlsp[0] = lsp_hz[0];
+        if (i)
+            dlsp[i] = lsp_hz[i] - lsp__hz[i-1];
+        else
+            dlsp[0] = lsp_hz[0];
 
-		k = lsp_cbd[i].k;
-		m = lsp_cbd[i].m;
-		cb = lsp_cbd[i].cb;
-		indexes[i] = quantise(cb, &dlsp[i], wt, k, m, &se);
-		dlsp_[i] = cb[indexes[i]*k];
+        k = lsp_cbd[i].k;
+        m = lsp_cbd[i].m;
+        cb = lsp_cbd[i].cb;
+        indexes[i] = quantise(cb, &dlsp[i], wt, k, m, &se);
+        dlsp_[i] = cb[indexes[i]*k];
 
 
-		if (i)
-			lsp__hz[i] = lsp__hz[i-1] + dlsp_[i];
-		else
-			lsp__hz[0] = dlsp_[0];
-	}
+        if (i)
+            lsp__hz[i] = lsp__hz[i-1] + dlsp_[i];
+        else
+            lsp__hz[0] = dlsp_[0];
+    }
     delete[] lsp_hz;
     delete[] lsp__hz;
     delete[] dlsp;
@@ -121,27 +121,27 @@ void CQuantize::encode_lspds_scalar(int indexes[], float lsp[], int order)
 }
 
 
-void CQuantize::decode_lspds_scalar( float lsp_[], int indexes[], int   order)
+void CQuantize::decode_lspds_scalar( double lsp_[], int indexes[], int   order)
 {
-	int   i,k;
-    float* lsp__hz = new float[order];
-    float* dlsp_ = new float[order];
-	const float *cb;
+    int   i,k;
+    double* lsp__hz = new double[order];
+    double* dlsp_ = new double[order];
+    const double *cb;
 
-	for(i=0; i<order; i++)
-	{
+    for(i=0; i<order; i++)
+    {
 
-		k = lsp_cbd[i].k;
-		cb = lsp_cbd[i].cb;
-		dlsp_[i] = cb[indexes[i]*k];
+        k = lsp_cbd[i].k;
+        cb = lsp_cbd[i].cb;
+        dlsp_[i] = cb[indexes[i]*k];
 
-		if (i)
-			lsp__hz[i] = lsp__hz[i-1] + dlsp_[i];
-		else
-			lsp__hz[0] = dlsp_[0];
+        if (i)
+            lsp__hz[i] = lsp__hz[i-1] + dlsp_[i];
+        else
+            lsp__hz[0] = dlsp_[0];
 
         lsp_[i] = (PI/4000.0f)*lsp__hz[i];
-	}
+    }
     delete[] lsp__hz;
     delete[] dlsp_;
 }
@@ -149,56 +149,56 @@ void CQuantize::decode_lspds_scalar( float lsp_[], int indexes[], int   order)
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #define MAX_ENTRIES 16384
 
-void CQuantize::compute_weights(const float *x, float *w, int ndim)
+void CQuantize::compute_weights(const double *x, double *w, int ndim)
 {
-	int i;
-	w[0] = MIN(x[0], x[1]-x[0]);
-	for (i=1; i<ndim-1; i++)
-		w[i] = MIN(x[i]-x[i-1], x[i+1]-x[i]);
-	w[ndim-1] = MIN(x[ndim-1]-x[ndim-2], PI-x[ndim-1]);
+    int i;
+    w[0] = MIN(x[0], x[1]-x[0]);
+    for (i=1; i<ndim-1; i++)
+        w[i] = MIN(x[i]-x[i-1], x[i+1]-x[i]);
+    w[ndim-1] = MIN(x[ndim-1]-x[ndim-2], PI-x[ndim-1]);
 
-	for (i=0; i<ndim; i++)
-		w[i] = 1./(.01+w[i]);
+    for (i=0; i<ndim; i++)
+        w[i] = 1./(.01+w[i]);
 }
 
-int CQuantize::find_nearest(const float *codebook, int nb_entries, float *x, int ndim)
+int CQuantize::find_nearest(const double *codebook, int nb_entries, double *x, int ndim)
 {
-	int i, j;
-	float min_dist = 1e15;
-	int nearest = 0;
+    int i, j;
+    double min_dist = 1e15;
+    int nearest = 0;
 
-	for (i=0; i<nb_entries; i++)
-	{
-		float dist=0;
-		for (j=0; j<ndim; j++)
-			dist += (x[j]-codebook[i*ndim+j])*(x[j]-codebook[i*ndim+j]);
-		if (dist<min_dist)
-		{
-			min_dist = dist;
-			nearest = i;
-		}
-	}
-	return nearest;
+    for (i=0; i<nb_entries; i++)
+    {
+        double dist=0;
+        for (j=0; j<ndim; j++)
+            dist += (x[j]-codebook[i*ndim+j])*(x[j]-codebook[i*ndim+j]);
+        if (dist<min_dist)
+        {
+            min_dist = dist;
+            nearest = i;
+        }
+    }
+    return nearest;
 }
 
-int CQuantize::check_lsp_order(float lsp[], int order)
+int CQuantize::check_lsp_order(double lsp[], int order)
 {
-	int   i;
-	float tmp;
-	int   swaps = 0;
+    int   i;
+    double tmp;
+    int   swaps = 0;
 
-	for(i=1; i<order; i++)
-		if (lsp[i] < lsp[i-1])
-		{
-			//fprintf(stderr, "swap %d\n",i);
-			swaps++;
-			tmp = lsp[i-1];
-			lsp[i-1] = lsp[i]-0.1;
-			lsp[i] = tmp+0.1;
-			i = 1; /* start check again, as swap may have caused out of order */
-		}
+    for(i=1; i<order; i++)
+        if (lsp[i] < lsp[i-1])
+        {
+            //fprintf(stderr, "swap %d\n",i);
+            swaps++;
+            tmp = lsp[i-1];
+            lsp[i-1] = lsp[i]-0.1;
+            lsp[i] = tmp+0.1;
+            i = 1; /* start check again, as swap may have caused out of order */
+        }
 
-	return swaps;
+    return swaps;
 }
 
 
@@ -231,89 +231,89 @@ int CQuantize::check_lsp_order(float lsp[], int order)
 
 \*---------------------------------------------------------------------------*/
 
-void CQuantize::lpc_post_filter(FFTR_STATE *fftr_fwd_cfg, float Pw[], float ak[], int order, float beta, float gamma, int bass_boost, float E)
+void CQuantize::lpc_post_filter(FFTR_STATE *fftr_fwd_cfg, double Pw[], double ak[], int order, double beta, double gamma, int bass_boost, double E)
 {
-	int   i;
-	float x[FFT_ENC];   /* input to FFTs                */
-	std::complex<float>  Ww[FFT_ENC/2+1];  /* weighting spectrum           */
-	float Rw[FFT_ENC/2+1];  /* R = WA                       */
-	float e_before, e_after, gain;
-	float Pfw;
-	float max_Rw, min_Rw;
-	float coeff;
+    int   i;
+    double x[FFT_ENC];   /* input to FFTs                */
+    std::complex<double>  Ww[FFT_ENC/2+1];  /* weighting spectrum           */
+    double Rw[FFT_ENC/2+1];  /* R = WA                       */
+    double e_before, e_after, gain;
+    double Pfw;
+    double max_Rw, min_Rw;
+    double coeff;
 
-	/* Determine weighting filter spectrum W(exp(jw)) ---------------*/
+    /* Determine weighting filter spectrum W(exp(jw)) ---------------*/
 
-	for(i=0; i<FFT_ENC; i++)
-	{
-		x[i] = 0.0;
-	}
+    for(i=0; i<FFT_ENC; i++)
+    {
+        x[i] = 0.0;
+    }
 
-	x[0]  = ak[0];
-	coeff = gamma;
-	for(i=1; i<=order; i++)
-	{
-		x[i] = ak[i] * coeff;
-		coeff *= gamma;
-	}
-	kiss.fftr(*fftr_fwd_cfg, x, Ww);
+    x[0]  = ak[0];
+    coeff = gamma;
+    for(i=1; i<=order; i++)
+    {
+        x[i] = ak[i] * coeff;
+        coeff *= gamma;
+    }
+    kiss.fftr(*fftr_fwd_cfg, x, Ww);
 
-	for(i=0; i<FFT_ENC/2; i++)
-	{
-		Ww[i].real(Ww[i].real() * Ww[i].real() + Ww[i].imag() * Ww[i].imag());
-	}
+    for(i=0; i<FFT_ENC/2; i++)
+    {
+        Ww[i].real(Ww[i].real() * Ww[i].real() + Ww[i].imag() * Ww[i].imag());
+    }
 
-	/* Determined combined filter R = WA ---------------------------*/
+    /* Determined combined filter R = WA ---------------------------*/
 
-	max_Rw = 0.0;
-	min_Rw = 1E32;
-	for(i=0; i<FFT_ENC/2; i++)
-	{
-		Rw[i] = sqrtf(Ww[i].real() * Pw[i]);
-		if (Rw[i] > max_Rw)
-			max_Rw = Rw[i];
-		if (Rw[i] < min_Rw)
-			min_Rw = Rw[i];
+    max_Rw = 0.0;
+    min_Rw = 1E32;
+    for(i=0; i<FFT_ENC/2; i++)
+    {
+        Rw[i] = sqrt(Ww[i].real() * Pw[i]);
+        if (Rw[i] > max_Rw)
+            max_Rw = Rw[i];
+        if (Rw[i] < min_Rw)
+            min_Rw = Rw[i];
 
-	}
+    }
 
-	/* create post filter mag spectrum and apply ------------------*/
+    /* create post filter mag spectrum and apply ------------------*/
 
-	/* measure energy before post filtering */
+    /* measure energy before post filtering */
 
-	e_before = 1E-4;
-	for(i=0; i<FFT_ENC/2; i++)
-		e_before += Pw[i];
+    e_before = 1E-4;
+    for(i=0; i<FFT_ENC/2; i++)
+        e_before += Pw[i];
 
-	/* apply post filter and measure energy  */
+    /* apply post filter and measure energy  */
 
 
-	e_after = 1E-4;
-	for(i=0; i<FFT_ENC/2; i++)
-	{
-		Pfw = powf(Rw[i], beta);
-		Pw[i] *= Pfw * Pfw;
-		e_after += Pw[i];
-	}
-	gain = e_before/e_after;
+    e_after = 1E-4;
+    for(i=0; i<FFT_ENC/2; i++)
+    {
+        Pfw = pow(Rw[i], beta);
+        Pw[i] *= Pfw * Pfw;
+        e_after += Pw[i];
+    }
+    gain = e_before/e_after;
 
-	/* apply gain factor to normalise energy, and LPC Energy */
+    /* apply gain factor to normalise energy, and LPC Energy */
 
-	gain *= E;
-	for(i=0; i<FFT_ENC/2; i++)
-	{
-		Pw[i] *= gain;
-	}
+    gain *= E;
+    for(i=0; i<FFT_ENC/2; i++)
+    {
+        Pw[i] *= gain;
+    }
 
-	if (bass_boost)
-	{
-		/* add 3dB to first 1 kHz to account for LP effect of PF */
+    if (bass_boost)
+    {
+        /* add 3dB to first 1 kHz to account for LP effect of PF */
 
-		for(i=0; i<FFT_ENC/8; i++)
-		{
-			Pw[i] *= 1.4*1.4;
-		}
-	}
+        for(i=0; i<FFT_ENC/8; i++)
+        {
+            Pw[i] *= 1.4*1.4;
+        }
+    }
 }
 
 
@@ -328,111 +328,111 @@ void CQuantize::lpc_post_filter(FFTR_STATE *fftr_fwd_cfg, float Pw[], float ak[]
 \*---------------------------------------------------------------------------*/
 
 void CQuantize::aks_to_M2(
-	FFTR_STATE * fftr_fwd_cfg,
-	float         ak[],	     /* LPC's */
-	int           order,
-	MODEL        *model,	   /* sinusoidal model parameters for this frame */
-	float         E,	       /* energy term */
-	float        *snr,	       /* signal to noise ratio for this frame in dB */
-	int           sim_pf,      /* true to simulate a post filter */
-	int           pf,          /* true to enable actual LPC post filter */
-	int           bass_boost,  /* enable LPC filter 0-1kHz 3dB boost */
-	float         beta,
-	float         gamma,       /* LPC post filter parameters */
-	std::complex<float>          Aw[]         /* output power spectrum */
+    FFTR_STATE * fftr_fwd_cfg,
+    double         ak[],	     /* LPC's */
+    int           order,
+    MODEL        *model,	   /* sinusoidal model parameters for this frame */
+    double         E,	       /* energy term */
+    double        *snr,	       /* signal to noise ratio for this frame in dB */
+    int           sim_pf,      /* true to simulate a post filter */
+    int           pf,          /* true to enable actual LPC post filter */
+    int           bass_boost,  /* enable LPC filter 0-1kHz 3dB boost */
+    double         beta,
+    double         gamma,       /* LPC post filter parameters */
+    std::complex<double>          Aw[]         /* output power spectrum */
 )
 {
-	int i,m;		/* loop variables */
-	int am,bm;		/* limits of current band */
-	float r;		/* no. rads/bin */
-	float Em;		/* energy in band */
-	float Am;		/* spectral amplitude sample */
-	float signal, noise;
+    int i,m;		/* loop variables */
+    int am,bm;		/* limits of current band */
+    double r;		/* no. rads/bin */
+    double Em;		/* energy in band */
+    double Am;		/* spectral amplitude sample */
+    double signal, noise;
 
-	r = TWO_PI/(FFT_ENC);
+    r = TWO_PI/(FFT_ENC);
 
-	/* Determine DFT of A(exp(jw)) --------------------------------------------*/
-	{
-		float a[FFT_ENC];  /* input to FFT for power spectrum */
+    /* Determine DFT of A(exp(jw)) --------------------------------------------*/
+    {
+        double a[FFT_ENC];  /* input to FFT for power spectrum */
 
-		for(i=0; i<FFT_ENC; i++)
-		{
-			a[i] = 0.0;
-		}
+        for(i=0; i<FFT_ENC; i++)
+        {
+            a[i] = 0.0;
+        }
 
-		for(i=0; i<=order; i++)
-			a[i] = ak[i];
-		kiss.fftr(*fftr_fwd_cfg, a, Aw);
-	}
+        for(i=0; i<=order; i++)
+            a[i] = ak[i];
+        kiss.fftr(*fftr_fwd_cfg, a, Aw);
+    }
 
-	/* Determine power spectrum P(w) = E/(A(exp(jw))^2 ------------------------*/
+    /* Determine power spectrum P(w) = E/(A(exp(jw))^2 ------------------------*/
 
-	float Pw[FFT_ENC/2];
+    double Pw[FFT_ENC/2];
 
-	for(i=0; i<FFT_ENC/2; i++)
-	{
-		Pw[i] = 1.0/(Aw[i].real() * Aw[i].real() + Aw[i].imag() * Aw[i].imag() + 1E-6);
-	}
+    for(i=0; i<FFT_ENC/2; i++)
+    {
+        Pw[i] = 1.0/(Aw[i].real() * Aw[i].real() + Aw[i].imag() * Aw[i].imag() + 1E-6);
+    }
 
-	if (pf)
-		lpc_post_filter(fftr_fwd_cfg, Pw, ak, order, beta, gamma, bass_boost, E);
-	else
-	{
-		for(i=0; i<FFT_ENC/2; i++)
-		{
-			Pw[i] *= E;
-		}
-	}
+    if (pf)
+        lpc_post_filter(fftr_fwd_cfg, Pw, ak, order, beta, gamma, bass_boost, E);
+    else
+    {
+        for(i=0; i<FFT_ENC/2; i++)
+        {
+            Pw[i] *= E;
+        }
+    }
 
-	/* Determine magnitudes from P(w) ----------------------------------------*/
+    /* Determine magnitudes from P(w) ----------------------------------------*/
 
-	/* when used just by decoder {A} might be all zeroes so init signal
-	   and noise to prevent log(0) errors */
+    /* when used just by decoder {A} might be all zeroes so init signal
+       and noise to prevent log(0) errors */
 
-	signal = 1E-30;
-	noise = 1E-32;
+    signal = 1E-30;
+    noise = 1E-32;
 
-	for(m=1; m<=model->L; m++)
-	{
-		am = (int)((m - 0.5)*model->Wo/r + 0.5);
-		bm = (int)((m + 0.5)*model->Wo/r + 0.5);
+    for(m=1; m<=model->L; m++)
+    {
+        am = (int)((m - 0.5)*model->Wo/r + 0.5);
+        bm = (int)((m + 0.5)*model->Wo/r + 0.5);
 
-		// FIXME: With arm_rfft_fast_f32 we have to use this
-		// otherwise sometimes a to high bm is calculated
-		// which causes trouble later in the calculation
-		// chain
-		// it seems for some reason model->Wo is calculated somewhat too high
-		if (bm>FFT_ENC/2)
-		{
-			bm = FFT_ENC/2;
-		}
-		Em = 0.0;
+        // FIXME: With arm_rfft_fast_f32 we have to use this
+        // otherwise sometimes a to high bm is calculated
+        // which causes trouble later in the calculation
+        // chain
+        // it seems for some reason model->Wo is calculated somewhat too high
+        if (bm>FFT_ENC/2)
+        {
+            bm = FFT_ENC/2;
+        }
+        Em = 0.0;
 
-		for(i=am; i<bm; i++)
-			Em += Pw[i];
-		Am = sqrtf(Em);
+        for(i=am; i<bm; i++)
+            Em += Pw[i];
+        Am = sqrt(Em);
 
-		signal += model->A[m]*model->A[m];
-		noise  += (model->A[m] - Am)*(model->A[m] - Am);
+        signal += model->A[m]*model->A[m];
+        noise  += (model->A[m] - Am)*(model->A[m] - Am);
 
-		/* This code significantly improves perf of LPC model, in
-		   particular when combined with phase0.  The LPC spectrum tends
-		   to track just under the peaks of the spectral envelope, and
-		   just above nulls.  This algorithm does the reverse to
-		   compensate - raising the amplitudes of spectral peaks, while
-		   attenuating the null.  This enhances the formants, and
-		   supresses the energy between formants. */
+        /* This code significantly improves perf of LPC model, in
+           particular when combined with phase0.  The LPC spectrum tends
+           to track just under the peaks of the spectral envelope, and
+           just above nulls.  This algorithm does the reverse to
+           compensate - raising the amplitudes of spectral peaks, while
+           attenuating the null.  This enhances the formants, and
+           supresses the energy between formants. */
 
-		if (sim_pf)
-		{
-			if (Am > model->A[m])
-				Am *= 0.7;
-			if (Am < model->A[m])
-				Am *= 1.4;
-		}
-		model->A[m] = Am;
-	}
-	*snr = 10.0*log10f(signal/noise);
+        if (sim_pf)
+        {
+            if (Am > model->A[m])
+                Am *= 0.7;
+            if (Am < model->A[m])
+                Am *= 1.4;
+        }
+        model->A[m] = Am;
+    }
+    *snr = 10.0*log10(signal/noise);
 }
 
 /*---------------------------------------------------------------------------*\
@@ -445,19 +445,19 @@ void CQuantize::aks_to_M2(
 
 \*---------------------------------------------------------------------------*/
 
-int CQuantize::encode_Wo(C2CONST *c2const, float Wo, int bits)
+int CQuantize::encode_Wo(C2CONST *c2const, double Wo, int bits)
 {
-	int   index, Wo_levels = 1<<bits;
-	float Wo_min = c2const->Wo_min;
-	float Wo_max = c2const->Wo_max;
-	float norm;
+    int   index, Wo_levels = 1<<bits;
+    double Wo_min = c2const->Wo_min;
+    double Wo_max = c2const->Wo_max;
+    double norm;
 
-	norm = (Wo - Wo_min)/(Wo_max - Wo_min);
-	index = floorf(Wo_levels * norm + 0.5);
-	if (index < 0 ) index = 0;
-	if (index > (Wo_levels-1)) index = Wo_levels-1;
+    norm = (Wo - Wo_min)/(Wo_max - Wo_min);
+    index = (int)floor(Wo_levels * norm + 0.5);
+    if (index < 0 ) index = 0;
+    if (index > (Wo_levels-1)) index = Wo_levels-1;
 
-	return index;
+    return index;
 }
 
 /*---------------------------------------------------------------------------*\
@@ -470,18 +470,18 @@ int CQuantize::encode_Wo(C2CONST *c2const, float Wo, int bits)
 
 \*---------------------------------------------------------------------------*/
 
-float CQuantize::decode_Wo(C2CONST *c2const, int index, int bits)
+double CQuantize::decode_Wo(C2CONST *c2const, int index, int bits)
 {
-	float Wo_min = c2const->Wo_min;
-	float Wo_max = c2const->Wo_max;
-	float step;
-	float Wo;
-	int   Wo_levels = 1<<bits;
+    double Wo_min = c2const->Wo_min;
+    double Wo_max = c2const->Wo_max;
+    double step;
+    double Wo;
+    int   Wo_levels = 1<<bits;
 
-	step = (Wo_max - Wo_min)/Wo_levels;
-	Wo   = Wo_min + step*(index);
+    step = (Wo_max - Wo_min)/Wo_levels;
+    Wo   = Wo_min + step*(index);
 
-	return Wo;
+    return Wo;
 }
 
 /*---------------------------------------------------------------------------*\
@@ -496,55 +496,55 @@ float CQuantize::decode_Wo(C2CONST *c2const, int index, int bits)
 
 \*---------------------------------------------------------------------------*/
 
-float CQuantize::speech_to_uq_lsps(float lsp[], float ak[], float Sn[], float w[], int m_pitch, int order)
+double CQuantize::speech_to_uq_lsps(double lsp[], double ak[], double Sn[], double w[], int m_pitch, int order)
 {
-	int   i, roots;
-    float* Wn = new float[m_pitch];
-    float* R = new float[order+1];
-	float e, E;
-	Clpc lpc;
+    int   i, roots;
+    double* Wn = new double[m_pitch];
+    double* R = new double[order+1];
+    double e, E;
+    Clpc lpc;
 
-	e = 0.0;
-	for(i=0; i<m_pitch; i++)
-	{
-		Wn[i] = Sn[i]*w[i];
-		e += Wn[i]*Wn[i];
-	}
+    e = 0.0;
+    for(i=0; i<m_pitch; i++)
+    {
+        Wn[i] = Sn[i]*w[i];
+        e += Wn[i]*Wn[i];
+    }
 
-	/* trap 0 energy case as LPC analysis will fail */
+    /* trap 0 energy case as LPC analysis will fail */
 
-	if (e == 0.0)
-	{
-		for(i=0; i<order; i++)
-			lsp[i] = (PI/order)*(float)i;
-		return 0.0;
-	}
+    if (e == 0.0)
+    {
+        for(i=0; i<order; i++)
+            lsp[i] = (PI/order)*(double)i;
+        return 0.0;
+    }
 
-	lpc.autocorrelate(Wn, R, m_pitch, order);
-	lpc.levinson_durbin(R, ak, order);
+    lpc.autocorrelate(Wn, R, m_pitch, order);
+    lpc.levinson_durbin(R, ak, order);
 
-	E = 0.0;
-	for(i=0; i<=order; i++)
-		E += ak[i]*R[i];
+    E = 0.0;
+    for(i=0; i<=order; i++)
+        E += ak[i]*R[i];
 
-	/* 15 Hz BW expansion as I can't hear the difference and it may help
-	   help occasional fails in the LSP root finding.  Important to do this
-	   after energy calculation to avoid -ve energy values.
-	*/
+    /* 15 Hz BW expansion as I can't hear the difference and it may help
+       help occasional fails in the LSP root finding.  Important to do this
+       after energy calculation to avoid -ve energy values.
+    */
 
-	for(i=0; i<=order; i++)
-		ak[i] *= powf(0.994,(float)i);
+    for(i=0; i<=order; i++)
+        ak[i] *= pow(0.994,(double)i);
 
-	roots = lpc_to_lsp(ak, order, lsp, 5, LSP_DELTA1);
-	if (roots != order)
-	{
-		/* if root finding fails use some benign LSP values instead */
-		for(i=0; i<order; i++)
-			lsp[i] = (PI/order)*(float)i;
-	}
+    roots = lpc_to_lsp(ak, order, lsp, 5, LSP_DELTA1);
+    if (roots != order)
+    {
+        /* if root finding fails use some benign LSP values instead */
+        for(i=0; i<order; i++)
+            lsp[i] = (PI/order)*(double)i;
+    }
     delete[] Wn;
     delete[] R;
-	return E;
+    return E;
 }
 
 /*---------------------------------------------------------------------------*\
@@ -558,30 +558,30 @@ float CQuantize::speech_to_uq_lsps(float lsp[], float ak[], float Sn[], float w[
 
 \*---------------------------------------------------------------------------*/
 
-void CQuantize::encode_lsps_scalar(int indexes[], float lsp[], int order)
+void CQuantize::encode_lsps_scalar(int indexes[], double lsp[], int order)
 {
-	int    i,k,m;
-	float  wt[1];
-    float* lsp_hz = new float [order];
-	const float *cb;
-	float se;
+    int    i,k,m;
+    double  wt[1];
+    double* lsp_hz = new double [order];
+    const double *cb;
+    double se;
 
-	/* convert from radians to Hz so we can use human readable
-	   frequencies */
+    /* convert from radians to Hz so we can use human readable
+       frequencies */
 
-	for(i=0; i<order; i++)
-		lsp_hz[i] = (4000.0/PI)*lsp[i];
+    for(i=0; i<order; i++)
+        lsp_hz[i] = (4000.0/PI)*lsp[i];
 
-	/* scalar quantisers */
+    /* scalar quantisers */
 
-	wt[0] = 1.0;
-	for(i=0; i<order; i++)
-	{
-		k = lsp_cb[i].k;
-		m = lsp_cb[i].m;
-		cb = lsp_cb[i].cb;
-		indexes[i] = quantise(cb, &lsp_hz[i], wt, k, m, &se);
-	}
+    wt[0] = 1.0;
+    for(i=0; i<order; i++)
+    {
+        k = lsp_cb[i].k;
+        m = lsp_cb[i].m;
+        cb = lsp_cb[i].cb;
+        indexes[i] = quantise(cb, &lsp_hz[i], wt, k, m, &se);
+    }
     delete[] lsp_hz;
 }
 
@@ -596,23 +596,23 @@ void CQuantize::encode_lsps_scalar(int indexes[], float lsp[], int order)
 
 \*---------------------------------------------------------------------------*/
 
-void CQuantize::decode_lsps_scalar(float lsp[], int indexes[], int order)
+void CQuantize::decode_lsps_scalar(double lsp[], int indexes[], int order)
 {
-	int    i,k;
-    float* lsp_hz = new float[order];
-	const float *cb;
+    int    i,k;
+    double* lsp_hz = new double[order];
+    const double *cb;
 
-	for(i=0; i<order; i++)
-	{
-		k = lsp_cb[i].k;
-		cb = lsp_cb[i].cb;
-		lsp_hz[i] = cb[indexes[i]*k];
-	}
+    for(i=0; i<order; i++)
+    {
+        k = lsp_cb[i].k;
+        cb = lsp_cb[i].cb;
+        lsp_hz[i] = cb[indexes[i]*k];
+    }
 
-	/* convert back to radians */
+    /* convert back to radians */
 
-	for(i=0; i<order; i++)
-		lsp[i] = (PI/4000.0)*lsp_hz[i];
+    for(i=0; i<order; i++)
+        lsp[i] = (PI/4000.0)*lsp_hz[i];
     delete[] lsp_hz;
 }
 
@@ -629,28 +629,28 @@ void CQuantize::decode_lsps_scalar(float lsp[], int indexes[], int order)
 
 \*---------------------------------------------------------------------------*/
 
-void CQuantize::bw_expand_lsps(float lsp[], int order, float min_sep_low, float min_sep_high)
+void CQuantize::bw_expand_lsps(double lsp[], int order, double min_sep_low, double min_sep_high)
 {
-	int i;
+    int i;
 
-	for(i=1; i<4; i++)
-	{
+    for(i=1; i<4; i++)
+    {
 
-		if ((lsp[i] - lsp[i-1]) < min_sep_low*(PI/4000.0))
-			lsp[i] = lsp[i-1] + min_sep_low*(PI/4000.0);
+        if ((lsp[i] - lsp[i-1]) < min_sep_low*(PI/4000.0))
+            lsp[i] = lsp[i-1] + min_sep_low*(PI/4000.0);
 
-	}
+    }
 
-	/* As quantiser gaps increased, larger BW expansion was required
-	   to prevent twinkly noises.  This may need more experiment for
-	   different quanstisers.
-	*/
+    /* As quantiser gaps increased, larger BW expansion was required
+       to prevent twinkly noises.  This may need more experiment for
+       different quanstisers.
+    */
 
-	for(i=4; i<order; i++)
-	{
-		if (lsp[i] - lsp[i-1] < min_sep_high*(PI/4000.0))
-			lsp[i] = lsp[i-1] + min_sep_high*(PI/4000.0);
-	}
+    for(i=4; i<order; i++)
+    {
+        if (lsp[i] - lsp[i-1] < min_sep_high*(PI/4000.0))
+            lsp[i] = lsp[i-1] + min_sep_high*(PI/4000.0);
+    }
 }
 
 /*---------------------------------------------------------------------------*\
@@ -666,10 +666,10 @@ void CQuantize::bw_expand_lsps(float lsp[], int order, float min_sep_low, float 
 
 void CQuantize::apply_lpc_correction(MODEL *model)
 {
-	if (model->Wo < (PI*150.0/4000))
-	{
-		model->A[1] *= 0.032;
-	}
+    if (model->Wo < (PI*150.0/4000))
+    {
+        model->A[1] *= 0.032;
+    }
 }
 
 /*---------------------------------------------------------------------------*\
@@ -682,20 +682,20 @@ void CQuantize::apply_lpc_correction(MODEL *model)
 
 \*---------------------------------------------------------------------------*/
 
-int CQuantize::encode_energy(float e, int bits)
+int CQuantize::encode_energy(double e, int bits)
 {
-	int   index, e_levels = 1<<bits;
-	float e_min = E_MIN_DB;
-	float e_max = E_MAX_DB;
-	float norm;
+    int   index, e_levels = 1<<bits;
+    double e_min = E_MIN_DB;
+    double e_max = E_MAX_DB;
+    double norm;
 
-	e = 10.0*log10f(e);
-	norm = (e - e_min)/(e_max - e_min);
-	index = floorf(e_levels * norm + 0.5);
-	if (index < 0 ) index = 0;
-	if (index > (e_levels-1)) index = e_levels-1;
+    e = 10.0*log10(e);
+    norm = (e - e_min)/(e_max - e_min);
+    index = (int)floor(e_levels * norm + 0.5);
+    if (index < 0 ) index = 0;
+    if (index > (e_levels-1)) index = e_levels-1;
 
-	return index;
+    return index;
 }
 
 /*---------------------------------------------------------------------------*\
@@ -708,19 +708,19 @@ int CQuantize::encode_energy(float e, int bits)
 
 \*---------------------------------------------------------------------------*/
 
-float CQuantize::decode_energy(int index, int bits)
+double CQuantize::decode_energy(int index, int bits)
 {
-	float e_min = E_MIN_DB;
-	float e_max = E_MAX_DB;
-	float step;
-	float e;
-	int   e_levels = 1<<bits;
+    double e_min = E_MIN_DB;
+    double e_max = E_MAX_DB;
+    double step;
+    double e;
+    int   e_levels = 1<<bits;
 
-	step = (e_max - e_min)/e_levels;
-	e    = e_min + step*(index);
-	e    = exp10f(e/10.0);
+    step = (e_max - e_min)/e_levels;
+    e    = e_min + step*(index);
+    e    = exp10(e/10.0);
 
-	return e;
+    return e;
 }
 
 /*---------------------------------------------------------------------------*\
@@ -733,132 +733,132 @@ float CQuantize::decode_energy(int index, int bits)
 
 \*---------------------------------------------------------------------------*/
 
-int CQuantize::lpc_to_lsp(float *a, int order, float *freq, int nb, float delta)
-/*  float *a 		     	lpc coefficients			*/
+int CQuantize::lpc_to_lsp(double *a, int order, double *freq, int nb, double delta)
+/*  double *a 		     	lpc coefficients			*/
 /*  int order			order of LPC coefficients (10) 		*/
-/*  float *freq 	      	LSP frequencies in radians      	*/
+/*  double *freq 	      	LSP frequencies in radians      	*/
 /*  int nb			number of sub-intervals (4) 		*/
-/*  float delta			grid spacing interval (0.02) 		*/
+/*  double delta			grid spacing interval (0.02) 		*/
 {
-	float psuml,psumr,psumm,temp_xr,xl,xr,xm = 0;
-	float temp_psumr;
-	int i,j,m,flag,k;
-	float *px;                	/* ptrs of respective P'(z) & Q'(z)	*/
-	float *qx;
-	float *p;
-	float *q;
-	float *pt;                	/* ptr used for cheb_poly_eval()
-				   whether P' or Q' 			*/
-	int roots=0;              	/* number of roots found 	        */
-    float* Q=new float[order + 1];
-    float* P=new float[order + 1];
+    double psuml,psumr,psumm,temp_xr,xl,xr,xm = 0;
+    double temp_psumr;
+    int i,j,m,flag,k;
+    double *px;                	/* ptrs of respective P'(z) & Q'(z)	*/
+    double *qx;
+    double *p;
+    double *q;
+    double *pt;                	/* ptr used for cheb_poly_eval()
+                   whether P' or Q' 			*/
+    int roots=0;              	/* number of roots found 	        */
+    double* Q=new double[order + 1];
+    double* P=new double[order + 1];
 
-	flag = 1;
-	m = order/2;            	/* order of P'(z) & Q'(z) polynimials 	*/
+    flag = 1;
+    m = order/2;            	/* order of P'(z) & Q'(z) polynimials 	*/
 
-	/* Allocate memory space for polynomials */
+    /* Allocate memory space for polynomials */
 
-	/* determine P'(z)'s and Q'(z)'s coefficients where
-	  P'(z) = P(z)/(1 + z^(-1)) and Q'(z) = Q(z)/(1-z^(-1)) */
+    /* determine P'(z)'s and Q'(z)'s coefficients where
+      P'(z) = P(z)/(1 + z^(-1)) and Q'(z) = Q(z)/(1-z^(-1)) */
 
-	px = P;                      /* initilaise ptrs */
-	qx = Q;
-	p = px;
-	q = qx;
-	*px++ = 1.0;
-	*qx++ = 1.0;
-	for(i=1; i<=m; i++)
-	{
-		*px++ = a[i]+a[order+1-i]-*p++;
-		*qx++ = a[i]-a[order+1-i]+*q++;
-	}
-	px = P;
-	qx = Q;
-	for(i=0; i<m; i++)
-	{
-		*px = 2**px;
-		*qx = 2**qx;
-		px++;
-		qx++;
-	}
-	px = P;             	/* re-initialise ptrs 			*/
-	qx = Q;
+    px = P;                      /* initilaise ptrs */
+    qx = Q;
+    p = px;
+    q = qx;
+    *px++ = 1.0;
+    *qx++ = 1.0;
+    for(i=1; i<=m; i++)
+    {
+        *px++ = a[i]+a[order+1-i]-*p++;
+        *qx++ = a[i]-a[order+1-i]+*q++;
+    }
+    px = P;
+    qx = Q;
+    for(i=0; i<m; i++)
+    {
+        *px = 2**px;
+        *qx = 2**qx;
+        px++;
+        qx++;
+    }
+    px = P;             	/* re-initialise ptrs 			*/
+    qx = Q;
 
-	/* Search for a zero in P'(z) polynomial first and then alternate to Q'(z).
-	Keep alternating between the two polynomials as each zero is found 	*/
+    /* Search for a zero in P'(z) polynomial first and then alternate to Q'(z).
+    Keep alternating between the two polynomials as each zero is found 	*/
 
-	xr = 0;             	/* initialise xr to zero 		*/
-	xl = 1.0;               	/* start at point xl = 1 		*/
+    xr = 0;             	/* initialise xr to zero 		*/
+    xl = 1.0;               	/* start at point xl = 1 		*/
 
 
-	for(j=0; j<order; j++)
-	{
-		if(j%2)            	/* determines whether P' or Q' is eval. */
-			pt = qx;
-		else
-			pt = px;
+    for(j=0; j<order; j++)
+    {
+        if(j%2)            	/* determines whether P' or Q' is eval. */
+            pt = qx;
+        else
+            pt = px;
 
-		psuml = cheb_poly_eva(pt,xl,order);	/* evals poly. at xl 	*/
-		flag = 1;
-		while(flag && (xr >= -1.0))
-		{
-			xr = xl - delta ;                  	/* interval spacing 	*/
-			psumr = cheb_poly_eva(pt,xr,order);/* poly(xl-delta_x) 	*/
-			temp_psumr = psumr;
-			temp_xr = xr;
+        psuml = cheb_poly_eva(pt,xl,order);	/* evals poly. at xl 	*/
+        flag = 1;
+        while(flag && (xr >= -1.0))
+        {
+            xr = xl - delta ;                  	/* interval spacing 	*/
+            psumr = cheb_poly_eva(pt,xr,order);/* poly(xl-delta_x) 	*/
+            temp_psumr = psumr;
+            temp_xr = xr;
 
-			/* if no sign change increment xr and re-evaluate
-			   poly(xr). Repeat til sign change.  if a sign change has
-			   occurred the interval is bisected and then checked again
-			   for a sign change which determines in which interval the
-			   zero lies in.  If there is no sign change between poly(xm)
-			   and poly(xl) set interval between xm and xr else set
-			   interval between xl and xr and repeat till root is located
-			   within the specified limits  */
+            /* if no sign change increment xr and re-evaluate
+               poly(xr). Repeat til sign change.  if a sign change has
+               occurred the interval is bisected and then checked again
+               for a sign change which determines in which interval the
+               zero lies in.  If there is no sign change between poly(xm)
+               and poly(xl) set interval between xm and xr else set
+               interval between xl and xr and repeat till root is located
+               within the specified limits  */
 
-			if(((psumr*psuml)<0.0) || (psumr == 0.0))
-			{
-				roots++;
+            if(((psumr*psuml)<0.0) || (psumr == 0.0))
+            {
+                roots++;
 
-				psumm=psuml;
-				for(k=0; k<=nb; k++)
-				{
-					xm = (xl+xr)/2;        	/* bisect the interval 	*/
-					psumm=cheb_poly_eva(pt,xm,order);
-					if(psumm*psuml>0.)
-					{
-						psuml=psumm;
-						xl=xm;
-					}
-					else
-					{
-						psumr=psumm;
-						xr=xm;
-					}
-				}
+                psumm=psuml;
+                for(k=0; k<=nb; k++)
+                {
+                    xm = (xl+xr)/2;        	/* bisect the interval 	*/
+                    psumm=cheb_poly_eva(pt,xm,order);
+                    if(psumm*psuml>0.)
+                    {
+                        psuml=psumm;
+                        xl=xm;
+                    }
+                    else
+                    {
+                        psumr=psumm;
+                        xr=xm;
+                    }
+                }
 
-				/* once zero is found, reset initial interval to xr 	*/
-				freq[j] = (xm);
-				xl = xm;
-				flag = 0;       		/* reset flag for next search 	*/
-			}
-			else
-			{
-				psuml=temp_psumr;
-				xl=temp_xr;
-			}
-		}
-	}
+                /* once zero is found, reset initial interval to xr 	*/
+                freq[j] = (xm);
+                xl = xm;
+                flag = 0;       		/* reset flag for next search 	*/
+            }
+            else
+            {
+                psuml=temp_psumr;
+                xl=temp_xr;
+            }
+        }
+    }
 
-	/* convert from x domain to radians */
+    /* convert from x domain to radians */
 
-	for(i=0; i<order; i++)
-	{
-		freq[i] = acosf(freq[i]);
-	}
+    for(i=0; i<order; i++)
+    {
+        freq[i] = acos(freq[i]);
+    }
     delete [] Q;
     delete [] P;
-	return(roots);
+    return(roots);
 }
 
 /*---------------------------------------------------------------------------*\
@@ -874,35 +874,35 @@ int CQuantize::lpc_to_lsp(float *a, int order, float *freq, int nb, float delta)
 
 \*---------------------------------------------------------------------------*/
 
-float CQuantize::cheb_poly_eva(float *coef,float x,int order)
-/*  float coef[]  	coefficients of the polynomial to be evaluated 	*/
-/*  float x   		the point where polynomial is to be evaluated 	*/
+double CQuantize::cheb_poly_eva(double *coef,double x,int order)
+/*  double coef[]  	coefficients of the polynomial to be evaluated 	*/
+/*  double x   		the point where polynomial is to be evaluated 	*/
 /*  int order 		order of the polynomial 			*/
 {
-	int i;
-	float *t,*u,*v,sum;
-    float *T = new float[(order / 2) + 1];
+    int i;
+    double *t,*u,*v,sum;
+    double *T = new double[(order / 2) + 1];
 
-	/* Initialise pointers */
+    /* Initialise pointers */
 
-	t = T;                          	/* T[i-2] 			*/
-	*t++ = 1.0;
-	u = t--;                        	/* T[i-1] 			*/
-	*u++ = x;
-	v = u--;                        	/* T[i] 			*/
+    t = T;                          	/* T[i-2] 			*/
+    *t++ = 1.0;
+    u = t--;                        	/* T[i-1] 			*/
+    *u++ = x;
+    v = u--;                        	/* T[i] 			*/
 
-	/* Evaluate chebyshev series formulation using iterative approach 	*/
+    /* Evaluate chebyshev series formulation using iterative approach 	*/
 
-	for(i=2; i<=order/2; i++)
-		*v++ = (2*x)*(*u++) - *t++;  	/* T[i] = 2*x*T[i-1] - T[i-2]	*/
+    for(i=2; i<=order/2; i++)
+        *v++ = (2*x)*(*u++) - *t++;  	/* T[i] = 2*x*T[i-1] - T[i-2]	*/
 
-	sum=0.0;                        	/* initialise sum to zero 	*/
-	t = T;                          	/* reset pointer 		*/
+    sum=0.0;                        	/* initialise sum to zero 	*/
+    t = T;                          	/* reset pointer 		*/
 
-	/* Evaluate polynomial and return value also free memory space */
+    /* Evaluate polynomial and return value also free memory space */
 
-	for(i=0; i<=order/2; i++)
-		sum+=coef[(order/2)-i]**t++;
+    for(i=0; i<=order/2; i++)
+        sum+=coef[(order/2)-i]**t++;
     delete[] T;
-	return sum;
+    return sum;
 }

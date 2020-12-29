@@ -37,65 +37,65 @@ extern CKissFFT kiss;
 
 /*---------------------------------------------------------------------------*\
 
- 				GLOBALS
+                GLOBALS
 
 \*---------------------------------------------------------------------------*/
 
 /* 48 tap 600Hz low pass FIR filter coefficients */
 
-static const float nlp_fir[] =
+static const double nlp_fir[] =
 {
-	-1.0818124e-03,
-	-1.1008344e-03,
-	-9.2768838e-04,
-	-4.2289438e-04,
-	5.5034190e-04,
-	2.0029849e-03,
-	3.7058509e-03,
-	5.1449415e-03,
-	5.5924666e-03,
-	4.3036754e-03,
-	8.0284511e-04,
-	-4.8204610e-03,
-	-1.1705810e-02,
-	-1.8199275e-02,
-	-2.2065282e-02,
-	-2.0920610e-02,
-	-1.2808831e-02,
-	3.2204775e-03,
-	2.6683811e-02,
-	5.5520624e-02,
-	8.6305944e-02,
-	1.1480192e-01,
-	1.3674206e-01,
-	1.4867556e-01,
-	1.4867556e-01,
-	1.3674206e-01,
-	1.1480192e-01,
-	8.6305944e-02,
-	5.5520624e-02,
-	2.6683811e-02,
-	3.2204775e-03,
-	-1.2808831e-02,
-	-2.0920610e-02,
-	-2.2065282e-02,
-	-1.8199275e-02,
-	-1.1705810e-02,
-	-4.8204610e-03,
-	8.0284511e-04,
-	4.3036754e-03,
-	5.5924666e-03,
-	5.1449415e-03,
-	3.7058509e-03,
-	2.0029849e-03,
-	5.5034190e-04,
-	-4.2289438e-04,
-	-9.2768838e-04,
-	-1.1008344e-03,
-	-1.0818124e-03
+    -1.0818124e-03,
+    -1.1008344e-03,
+    -9.2768838e-04,
+    -4.2289438e-04,
+    5.5034190e-04,
+    2.0029849e-03,
+    3.7058509e-03,
+    5.1449415e-03,
+    5.5924666e-03,
+    4.3036754e-03,
+    8.0284511e-04,
+    -4.8204610e-03,
+    -1.1705810e-02,
+    -1.8199275e-02,
+    -2.2065282e-02,
+    -2.0920610e-02,
+    -1.2808831e-02,
+    3.2204775e-03,
+    2.6683811e-02,
+    5.5520624e-02,
+    8.6305944e-02,
+    1.1480192e-01,
+    1.3674206e-01,
+    1.4867556e-01,
+    1.4867556e-01,
+    1.3674206e-01,
+    1.1480192e-01,
+    8.6305944e-02,
+    5.5520624e-02,
+    2.6683811e-02,
+    3.2204775e-03,
+    -1.2808831e-02,
+    -2.0920610e-02,
+    -2.2065282e-02,
+    -1.8199275e-02,
+    -1.1705810e-02,
+    -4.8204610e-03,
+    8.0284511e-04,
+    4.3036754e-03,
+    5.5924666e-03,
+    5.1449415e-03,
+    3.7058509e-03,
+    2.0029849e-03,
+    5.5034190e-04,
+    -4.2289438e-04,
+    -9.2768838e-04,
+    -1.1008344e-03,
+    -1.0818124e-03
 };
 
-static const float fdmdv_os_filter[]= {
+static const double fdmdv_os_filter[]= {
     -0.0008215855034550382,
     -0.0007833023901802921,
      0.001075563790768233,
@@ -156,45 +156,45 @@ static const float fdmdv_os_filter[]= {
 
 void Cnlp::nlp_create(C2CONST *c2const)
 {
-	int  i;
-	int  m = c2const->m_pitch;
-	int  Fs = c2const->Fs;
+    int  i;
+    int  m = c2const->m_pitch;
+    int  Fs = c2const->Fs;
 
-	assert((Fs == 8000) || (Fs == 16000));
-	snlp.Fs = Fs;
+    assert((Fs == 8000) || (Fs == 16000));
+    snlp.Fs = Fs;
 
-	snlp.m = m;
+    snlp.m = m;
 
-	/* if running at 16kHz allocate storage for decimating filter memory */
+    /* if running at 16kHz allocate storage for decimating filter memory */
 
-	if (Fs == 16000)
-	{
-		snlp.Sn16k.resize(FDMDV_OS_TAPS_16K + c2const->n_samp);
-		for(i=0; i<FDMDV_OS_TAPS_16K; i++)
-		{
-			snlp.Sn16k[i] = 0.0;
-		}
+    if (Fs == 16000)
+    {
+        snlp.Sn16k.resize(FDMDV_OS_TAPS_16K + c2const->n_samp);
+        for(i=0; i<FDMDV_OS_TAPS_16K; i++)
+        {
+            snlp.Sn16k[i] = 0.0;
+        }
 
-		/* most processing occurs at 8 kHz sample rate so halve m */
+        /* most processing occurs at 8 kHz sample rate so halve m */
 
-		m /= 2;
-	}
+        m /= 2;
+    }
 
-	assert(m <= PMAX_M);
+    assert(m <= PMAX_M);
 
-	for(i=0; i<m/DEC; i++)
-	{
-		snlp.w[i] = 0.5 - 0.5*cosf(2*PI*i/(m/DEC-1));
-	}
+    for(i=0; i<m/DEC; i++)
+    {
+        snlp.w[i] = 0.5 - 0.5*cos(2*PI*i/(m/DEC-1));
+    }
 
-	for(i=0; i<PMAX_M; i++)
-		snlp.sq[i] = 0.0;
-	snlp.mem_x = 0.0;
-	snlp.mem_y = 0.0;
-	for(i=0; i<NLP_NTAP; i++)
-		snlp.mem_fir[i] = 0.0;
+    for(i=0; i<PMAX_M; i++)
+        snlp.sq[i] = 0.0;
+    snlp.mem_x = 0.0;
+    snlp.mem_y = 0.0;
+    for(i=0; i<NLP_NTAP; i++)
+        snlp.mem_fir[i] = 0.0;
 
-	kiss.fft_alloc(snlp.fft_cfg, PE_FFT_SIZE, false);
+    kiss.fft_alloc(snlp.fft_cfg, PE_FFT_SIZE, false);
 }
 
 /*---------------------------------------------------------------------------*\
@@ -207,7 +207,7 @@ void Cnlp::nlp_create(C2CONST *c2const)
 
 void Cnlp::nlp_destroy()
 {
-	snlp.fft_cfg.twiddles.clear();
+    snlp.fft_cfg.twiddles.clear();
 }
 
 /*---------------------------------------------------------------------------*\
@@ -240,145 +240,145 @@ void Cnlp::nlp_destroy()
 
 \*---------------------------------------------------------------------------*/
 
-float Cnlp::nlp(
-	float  Sn[],   /* input speech vector                                */
-	int    n,      /* frames shift (no. new samples in Sn[])             */
-	float *pitch,  /* estimated pitch period in samples at current Fs    */
-//	std::complex<float>   Sw[],   /* Freq domain version of Sn[]                        */
-//	float  W[],    /* Freq domain window                                 */
-	float *prev_f0 /* previous pitch f0 in Hz, memory for pitch tracking */
+double Cnlp::nlp(
+    double  Sn[],   /* input speech vector                                */
+    int    n,      /* frames shift (no. new samples in Sn[])             */
+    double *pitch,  /* estimated pitch period in samples at current Fs    */
+//	std::complex<double>   Sw[],   /* Freq domain version of Sn[]                        */
+//	double  W[],    /* Freq domain window                                 */
+    double *prev_f0 /* previous pitch f0 in Hz, memory for pitch tracking */
 )
 {
-	float  notch;		    /* current notch filter output          */
-	std::complex<float>   Fw[PE_FFT_SIZE]; /* DFT of squared signal (input/output) */
-	float  gmax;
-	int    gmax_bin;
-	int    m, i, j;
-	float  best_f0;
+    double  notch;		    /* current notch filter output          */
+    std::complex<double>   Fw[PE_FFT_SIZE]; /* DFT of squared signal (input/output) */
+    double  gmax;
+    int    gmax_bin;
+    int    m, i, j;
+    double  best_f0;
 
-	m = snlp.m;
+    m = snlp.m;
 
-	/* Square, notch filter at DC, and LP filter vector */
+    /* Square, notch filter at DC, and LP filter vector */
 
-	/* If running at 16 kHz decimate to 8 kHz, as NLP ws designed for
-	   Fs = 8kHz. The decimating filter introduces about 3ms of delay,
-	   that shouldn't be a problem as pitch changes slowly. */
+    /* If running at 16 kHz decimate to 8 kHz, as NLP ws designed for
+       Fs = 8kHz. The decimating filter introduces about 3ms of delay,
+       that shouldn't be a problem as pitch changes slowly. */
 
-	if (snlp.Fs == 8000)
-	{
-		/* Square latest input samples */
+    if (snlp.Fs == 8000)
+    {
+        /* Square latest input samples */
 
-		for(i=m-n; i<m; i++)
-		{
-			snlp.sq[i] = Sn[i]*Sn[i];
-		}
-	}
-	else
-	{
-		assert(snlp.Fs == 16000);
+        for(i=m-n; i<m; i++)
+        {
+            snlp.sq[i] = Sn[i]*Sn[i];
+        }
+    }
+    else
+    {
+        assert(snlp.Fs == 16000);
 
-		/* re-sample at 8 KHz */
+        /* re-sample at 8 KHz */
 
-		for(i=0; i<n; i++)
-		{
-			snlp.Sn16k[FDMDV_OS_TAPS_16K+i] = Sn[m-n+i];
-		}
+        for(i=0; i<n; i++)
+        {
+            snlp.Sn16k[FDMDV_OS_TAPS_16K+i] = Sn[m-n+i];
+        }
 
-		m /= 2;
-		n /= 2;
+        m /= 2;
+        n /= 2;
 
-        float* Sn8k = new float[n];
-		fdmdv_16_to_8(Sn8k, &snlp.Sn16k[FDMDV_OS_TAPS_16K], n);
+        double* Sn8k = new double[n];
+        fdmdv_16_to_8(Sn8k, &snlp.Sn16k[FDMDV_OS_TAPS_16K], n);
 
-		/* Square latest input samples */
+        /* Square latest input samples */
 
-		for(i=m-n, j=0; i<m; i++, j++)
-		{
-			snlp.sq[i] = Sn8k[j]*Sn8k[j];
-		}
-		assert(j <= n);
+        for(i=m-n, j=0; i<m; i++, j++)
+        {
+            snlp.sq[i] = Sn8k[j]*Sn8k[j];
+        }
+        assert(j <= n);
         delete[] Sn8k;
-	}
+    }
 
-	for(i=m-n; i<m; i++)  	/* notch filter at DC */
-	{
-		notch = snlp.sq[i] - snlp.mem_x;
-		notch += COEFF*snlp.mem_y;
-		snlp.mem_x = snlp.sq[i];
-		snlp.mem_y = notch;
-		snlp.sq[i] = notch + 1.0;  /* With 0 input vectors to codec,
-				      kiss_fft() would take a long
-				      time to execute when running in
-				      real time.  Problem was traced
-				      to kiss_fft function call in
-				      this function. Adding this small
-				      constant fixed problem.  Not
-				      exactly sure why. */
-	}
+    for(i=m-n; i<m; i++)  	/* notch filter at DC */
+    {
+        notch = snlp.sq[i] - snlp.mem_x;
+        notch += COEFF*snlp.mem_y;
+        snlp.mem_x = snlp.sq[i];
+        snlp.mem_y = notch;
+        snlp.sq[i] = notch + 1.0;  /* With 0 input vectors to codec,
+                      kiss_fft() would take a long
+                      time to execute when running in
+                      real time.  Problem was traced
+                      to kiss_fft function call in
+                      this function. Adding this small
+                      constant fixed problem.  Not
+                      exactly sure why. */
+    }
 
-	for(i=m-n; i<m; i++)  	/* FIR filter vector */
-	{
+    for(i=m-n; i<m; i++)  	/* FIR filter vector */
+    {
 
-		for(j=0; j<NLP_NTAP-1; j++)
-			snlp.mem_fir[j] = snlp.mem_fir[j+1];
-		snlp.mem_fir[NLP_NTAP-1] = snlp.sq[i];
+        for(j=0; j<NLP_NTAP-1; j++)
+            snlp.mem_fir[j] = snlp.mem_fir[j+1];
+        snlp.mem_fir[NLP_NTAP-1] = snlp.sq[i];
 
-		snlp.sq[i] = 0.0;
-		for(j=0; j<NLP_NTAP; j++)
-			snlp.sq[i] += snlp.mem_fir[j]*nlp_fir[j];
-	}
+        snlp.sq[i] = 0.0;
+        for(j=0; j<NLP_NTAP; j++)
+            snlp.sq[i] += snlp.mem_fir[j]*nlp_fir[j];
+    }
 
-	/* Decimate and DFT */
+    /* Decimate and DFT */
 
-	for(i=0; i<PE_FFT_SIZE; i++)
-	{
-		Fw[i].real(0);
-		Fw[i].imag(0);
-	}
-	for(i=0; i<m/DEC; i++)
-	{
-		Fw[i].real(snlp.sq[i*DEC]*snlp.w[i]);
-	}
+    for(i=0; i<PE_FFT_SIZE; i++)
+    {
+        Fw[i].real(0);
+        Fw[i].imag(0);
+    }
+    for(i=0; i<m/DEC; i++)
+    {
+        Fw[i].real(snlp.sq[i*DEC]*snlp.w[i]);
+    }
 
-	// FIXME: check if this can be converted to a real fft
-	// since all imag inputs are 0
-	codec2_fft_inplace(snlp.fft_cfg, Fw);
+    // FIXME: check if this can be converted to a real fft
+    // since all imag inputs are 0
+    codec2_fft_inplace(snlp.fft_cfg, Fw);
 
-	for(i=0; i<PE_FFT_SIZE; i++)
-		Fw[i].real(Fw[i].real() * Fw[i].real() + Fw[i].imag() * Fw[i].imag());
+    for(i=0; i<PE_FFT_SIZE; i++)
+        Fw[i].real(Fw[i].real() * Fw[i].real() + Fw[i].imag() * Fw[i].imag());
 
-	/* todo: express everything in f0, as pitch in samples is dep on Fs */
+    /* todo: express everything in f0, as pitch in samples is dep on Fs */
 
-	int pmin = floor(SAMPLE_RATE*P_MIN_S);
-	int pmax = floor(SAMPLE_RATE*P_MAX_S);
+    int pmin = (int)floor(SAMPLE_RATE*P_MIN_S);
+    int pmax = (int)floor(SAMPLE_RATE*P_MAX_S);
 
-	/* find global peak */
+    /* find global peak */
 
-	gmax = 0.0;
-	gmax_bin = PE_FFT_SIZE*DEC/pmax;
-	for(i=PE_FFT_SIZE*DEC/pmax; i<=PE_FFT_SIZE*DEC/pmin; i++)
-	{
-		if (Fw[i].real() > gmax)
-		{
-			gmax = Fw[i].real();
-			gmax_bin = i;
-		}
-	}
+    gmax = 0.0;
+    gmax_bin = PE_FFT_SIZE*DEC/pmax;
+    for(i=PE_FFT_SIZE*DEC/pmax; i<=PE_FFT_SIZE*DEC/pmin; i++)
+    {
+        if (Fw[i].real() > gmax)
+        {
+            gmax = Fw[i].real();
+            gmax_bin = i;
+        }
+    }
 
-	best_f0 = post_process_sub_multiples(Fw, pmax, gmax, gmax_bin, prev_f0);
+    best_f0 = post_process_sub_multiples(Fw, pmax, gmax, gmax_bin, prev_f0);
 
-	/* Shift samples in buffer to make room for new samples */
+    /* Shift samples in buffer to make room for new samples */
 
-	for(i=0; i<m-n; i++)
-		snlp.sq[i] = snlp.sq[i+n];
+    for(i=0; i<m-n; i++)
+        snlp.sq[i] = snlp.sq[i+n];
 
-	/* return pitch period in samples and F0 estimate */
+    /* return pitch period in samples and F0 estimate */
 
-	*pitch = (float)snlp.Fs/best_f0;
+    *pitch = (double)snlp.Fs/best_f0;
 
-	*prev_f0 = best_f0;
+    *prev_f0 = best_f0;
 
-	return(best_f0);
+    return(best_f0);
 }
 
 /*---------------------------------------------------------------------------*\
@@ -402,60 +402,60 @@ float Cnlp::nlp(
 
 \*---------------------------------------------------------------------------*/
 
-float Cnlp::post_process_sub_multiples(std::complex<float> Fw[], int pmax, float gmax, int gmax_bin, float *prev_f0)
+double Cnlp::post_process_sub_multiples(std::complex<double> Fw[], int pmax, double gmax, int gmax_bin, double *prev_f0)
 {
-	int   min_bin, cmax_bin;
-	int   mult;
-	float thresh, best_f0;
-	int   b, bmin, bmax, lmax_bin;
-	float lmax;
-	int   prev_f0_bin;
+    int   min_bin, cmax_bin;
+    int   mult;
+    double thresh, best_f0;
+    int   b, bmin, bmax, lmax_bin;
+    double lmax;
+    int   prev_f0_bin;
 
-	/* post process estimate by searching submultiples */
+    /* post process estimate by searching submultiples */
 
-	mult = 2;
-	min_bin = PE_FFT_SIZE*DEC/pmax;
-	cmax_bin = gmax_bin;
-	prev_f0_bin = *prev_f0*(PE_FFT_SIZE*DEC)/SAMPLE_RATE;
+    mult = 2;
+    min_bin = PE_FFT_SIZE*DEC/pmax;
+    cmax_bin = gmax_bin;
+    prev_f0_bin = (int)(*prev_f0*(PE_FFT_SIZE*DEC)/SAMPLE_RATE);
 
-	while(gmax_bin/mult >= min_bin)
-	{
+    while(gmax_bin/mult >= min_bin)
+    {
 
-		b = gmax_bin/mult;			/* determine search interval */
-		bmin = 0.8*b;
-		bmax = 1.2*b;
-		if (bmin < min_bin)
-			bmin = min_bin;
+        b = gmax_bin/mult;			/* determine search interval */
+        bmin = (int)(0.8*b);
+        bmax = (int)(1.2*b);
+        if (bmin < min_bin)
+            bmin = min_bin;
 
-		/* lower threshold to favour previous frames pitch estimate,
-		    this is a form of pitch tracking */
+        /* lower threshold to favour previous frames pitch estimate,
+            this is a form of pitch tracking */
 
-		if ((prev_f0_bin > bmin) && (prev_f0_bin < bmax))
-			thresh = CNLP*0.5*gmax;
-		else
-			thresh = CNLP*gmax;
+        if ((prev_f0_bin > bmin) && (prev_f0_bin < bmax))
+            thresh = CNLP*0.5*gmax;
+        else
+            thresh = CNLP*gmax;
 
-		lmax = 0;
-		lmax_bin = bmin;
-		for (b=bmin; b<=bmax; b++) 	     /* look for maximum in interval */
-			if (Fw[b].real() > lmax)
-			{
-				lmax = Fw[b].real();
-				lmax_bin = b;
-			}
+        lmax = 0;
+        lmax_bin = bmin;
+        for (b=bmin; b<=bmax; b++) 	     /* look for maximum in interval */
+            if (Fw[b].real() > lmax)
+            {
+                lmax = Fw[b].real();
+                lmax_bin = b;
+            }
 
-		if (lmax > thresh)
-			if ((lmax > Fw[lmax_bin-1].real()) && (lmax > Fw[lmax_bin+1].real()))
-			{
-				cmax_bin = lmax_bin;
-			}
+        if (lmax > thresh)
+            if ((lmax > Fw[lmax_bin-1].real()) && (lmax > Fw[lmax_bin+1].real()))
+            {
+                cmax_bin = lmax_bin;
+            }
 
-		mult++;
-	}
+        mult++;
+    }
 
-	best_f0 = (float)cmax_bin*SAMPLE_RATE/(PE_FFT_SIZE*DEC);
+    best_f0 = (double)cmax_bin*SAMPLE_RATE/(PE_FFT_SIZE*DEC);
 
-	return best_f0;
+    return best_f0;
 }
 
 /*---------------------------------------------------------------------------*\
@@ -478,23 +478,23 @@ float Cnlp::post_process_sub_multiples(std::complex<float> Fw[], int pmax, float
 
 \*---------------------------------------------------------------------------*/
 
-void Cnlp::fdmdv_16_to_8(float out8k[], float in16k[], int n)
+void Cnlp::fdmdv_16_to_8(double out8k[], double in16k[], int n)
 {
-	float acc;
-	int   i,j,k;
+    double acc;
+    int   i,j,k;
 
-	for(i=0, k=0; k<n; i+=FDMDV_OS, k++)
-	{
-		acc = 0.0;
-		for(j=0; j<FDMDV_OS_TAPS_16K; j++)
-			acc += fdmdv_os_filter[j]*in16k[i-j];
-		out8k[k] = acc;
-	}
+    for(i=0, k=0; k<n; i+=FDMDV_OS, k++)
+    {
+        acc = 0.0;
+        for(j=0; j<FDMDV_OS_TAPS_16K; j++)
+            acc += fdmdv_os_filter[j]*in16k[i-j];
+        out8k[k] = acc;
+    }
 
-	/* update filter memory */
+    /* update filter memory */
 
-	for(i=-FDMDV_OS_TAPS_16K; i<0; i++)
-		in16k[i] = in16k[i + n*FDMDV_OS];
+    for(i=-FDMDV_OS_TAPS_16K; i<0; i++)
+        in16k[i] = in16k[i + n*FDMDV_OS];
 }
 
 // there is a little overhead for inplace kiss_fft but this is
@@ -502,20 +502,20 @@ void Cnlp::fdmdv_16_to_8(float out8k[], float in16k[], int n)
 // not noticeable
 // the reduced usage of RAM and increased performance on STM32 platforms
 // should be worth it.
-void Cnlp::codec2_fft_inplace(FFT_STATE &cfg, std::complex<float> *inout)
+void Cnlp::codec2_fft_inplace(FFT_STATE &cfg, std::complex<double> *inout)
 {
-	std::complex<float> in[512];
-	// decide whether to use the local stack based buffer for in
-	// or to allow kiss_fft to allocate RAM
-	// second part is just to play safe since first method
-	// is much faster and uses less RAM
-	if (cfg.nfft <= 512)
-	{
-		memcpy(in, inout, cfg.nfft*sizeof(std::complex<float>));
-		kiss.fft(cfg, in, inout);
-	}
-	else
-	{
-		kiss.fft(cfg, inout, inout);
-	}
+    std::complex<double> in[512];
+    // decide whether to use the local stack based buffer for in
+    // or to allow kiss_fft to allocate RAM
+    // second part is just to play safe since first method
+    // is much faster and uses less RAM
+    if (cfg.nfft <= 512)
+    {
+        memcpy(in, inout, cfg.nfft*sizeof(std::complex<double>));
+        kiss.fft(cfg, in, inout);
+    }
+    else
+    {
+        kiss.fft(cfg, inout, inout);
+    }
 }

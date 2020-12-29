@@ -32,36 +32,36 @@
 #include "kiss_fft.h"
 
 using CODEC2 = struct codec2_tag {
-	int                mode;
-	int                Fs;
-	int                n_samp;
-	int                m_pitch;
-	int                gray;                     /* non-zero for gray encoding                */
-	int                lpc_pf;                   /* LPC post filter on                        */
-	int                bass_boost;               /* LPC post filter bass boost                */
-	int                smoothing;                /* enable smoothing for channels with errors */
-	float              ex_phase;                 /* excitation model phase track              */
-	float              bg_est;                   /* background noise estimate for post filter */
-	float              prev_f0_enc;              /* previous frame's f0    estimate           */
-	float              prev_e_dec;               /* previous frame's LPC energy               */
-	float              beta;                     /* LPC post filter parameters                */
-	float              gamma;
-	float              xq_enc[2];                /* joint pitch and energy VQ states          */
-	float              xq_dec[2];
-	float              W[FFT_ENC];	             /* DFT of w[]                                */
-	float              hpf_states[2];            /* high pass filter states                   */
-	float              prev_lsps_dec[LPC_ORD];   /* previous frame's LSPs                     */
-	float             *softdec;                  /* optional soft decn bits from demod        */
-	MODEL              prev_model_dec;           /* previous frame's model parameters         */
-	C2CONST            c2const;
-	FFT_STATE          fft_fwd_cfg;              /* forward FFT config                        */
-	FFTR_STATE         fftr_fwd_cfg;             /* forward real FFT config                   */
-	FFTR_STATE         fftr_inv_cfg;             /* inverse FFT config                        */
-	std::vector<float> w;	                     /* [m_pitch] time domain hamming window      */
-	std::vector<float> Pn;	                     /* [2*n_samp] trapezoidal synthesis window   */
-	std::vector<float> Sn;                       /* [m_pitch] input speech                    */
-	std::vector<float> Sn_;	                     /* [2*n_samp] synthesised output speech      */
-	std::vector<float> bpf_buf;                  /* buffer for band pass filter               */
+    int                 mode;
+    int                 Fs;
+    int                 n_samp;
+    int                 m_pitch;
+    int                 gray;                     /* non-zero for gray encoding                */
+    int                 lpc_pf;                   /* LPC post filter on                        */
+    int                 bass_boost;               /* LPC post filter bass boost                */
+    int                 smoothing;                /* enable smoothing for channels with errors */
+    double              ex_phase;                 /* excitation model phase track              */
+    double              bg_est;                   /* background noise estimate for post filter */
+    double              prev_f0_enc;              /* previous frame's f0    estimate           */
+    double              prev_e_dec;               /* previous frame's LPC energy               */
+    double              beta;                     /* LPC post filter parameters                */
+    double              gamma;
+    double              xq_enc[2];                /* joint pitch and energy VQ states          */
+    double              xq_dec[2];
+    double              W[FFT_ENC];	             /* DFT of w[]                                */
+    double              hpf_states[2];            /* high pass filter states                   */
+    double              prev_lsps_dec[LPC_ORD];   /* previous frame's LSPs                     */
+    double              *softdec;                  /* optional soft decn bits from demod        */
+    MODEL               prev_model_dec;           /* previous frame's model parameters         */
+    C2CONST             c2const;
+    FFT_STATE           fft_fwd_cfg;              /* forward FFT config                        */
+    FFTR_STATE          fftr_fwd_cfg;             /* forward real FFT config                   */
+    FFTR_STATE          fftr_inv_cfg;             /* inverse FFT config                        */
+    std::vector<double> w;	                     /* [m_pitch] time domain hamming window      */
+    std::vector<double> Pn;	                     /* [2*n_samp] trapezoidal synthesis window   */
+    std::vector<double> Sn;                       /* [m_pitch] input speech                    */
+    std::vector<double> Sn_;	                     /* [2*n_samp] synthesised output speech      */
+    std::vector<double> bpf_buf;                  /* buffer for band pass filter               */
 };
 
 #endif

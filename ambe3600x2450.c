@@ -148,12 +148,12 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
   int ji, i, j, k, l, L, L9, m, am, ak;
   int intkl[57];
   int b0, b1, b2, b3, b4, b5, b6, b7, b8;
-  float f0, Cik[5][18], flokl[57], deltal[57];
-  float Sum42, Sum43, Tl[57], Gm[9], Ri[9], sum, c1, c2;
+  double f0, Cik[5][18], flokl[57], deltal[57];
+  double Sum42, Sum43, Tl[57], Gm[9], Ri[9], sum, c1, c2;
   int silence;
   int Ji[5], jl;
-  float deltaGamma, BigGamma;
-  float unvc, rconst;
+  double deltaGamma, BigGamma;
+  double unvc, rconst;
 
   silence = 0;
 
@@ -186,8 +186,8 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
       printf ("Silence Frame\n");
 #endif
       silence = 1;
-      cur_mp->w0 = ((float) 2 * M_PI) / (float) 32;
-      f0 = (float) 1 / (float) 32;
+      cur_mp->w0 = (2.0 * M_PI) / 32.0;
+      f0 = 1.0 / 32.0;
       L = 14;
       cur_mp->L = 14;
       for (l = 1; l <= L; l++)
@@ -207,13 +207,13 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
     {
       // w0 from specification document
       f0 = AmbeW0table[b0];
-      cur_mp->w0 = f0 * (float) 2 *M_PI;
+      cur_mp->w0 = f0 * 2.0 *M_PI;
       // w0 from patent filings
       //f0 = powf (2, ((float) b0 + (float) 195.626) / -(float) 45.368);
       //cur_mp->w0 = f0 * (float) 2 *M_PI;
     }
 
-  unvc = (float) 0.2046 / sqrtf (cur_mp->w0);
+  unvc = 0.2046 / sqrt (cur_mp->w0);
   //unvc = (float) 1;
   //unvc = (float) 0.2046 / sqrtf (f0);
 
@@ -222,7 +222,7 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
     {
       // L from specification document
       // lookup L in tabl3
-      L = AmbeLtable[b0];
+      L = (int)AmbeLtable[b0];
       // L formula from patent filings
       //L=(int)((float)0.4627 / f0);
       cur_mp->L = L;
@@ -241,7 +241,7 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
   for (l = 1; l <= L; l++)
     {
       // jl from specification document
-      jl = (int) ((float) l * (float) 16.0 * f0);
+      jl = (int) ( l * 16.0 * f0);
       // jl from patent filings?
       //jl = (int)(((float)l * (float)16.0 * f0) + 0.25);
 
@@ -267,7 +267,7 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
   b2 |= ambe_d[36];
 
   deltaGamma = AmbeDg[b2];
-  cur_mp->gamma = deltaGamma + ((float) 0.5 * prev_mp->gamma);
+  cur_mp->gamma = deltaGamma + (0.5 * prev_mp->gamma);
 #ifdef AMBE_DEBUG
   printf ("b2: %i, deltaGamma: %f gamma: %f gamma-1: %f\n", b2, deltaGamma, cur_mp->gamma, prev_mp->gamma);
 #endif
@@ -323,7 +323,7 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
             {
               am = 2;
             }
-          sum = sum + ((float) am * Gm[m] * cosf ((M_PI * (float) (m - 1) * ((float) i - (float) 0.5)) / (float) 8));
+          sum = sum + (am * Gm[m] * cos ((M_PI * (double) (m - 1) * ((double) i - 0.5)) / 8.0));
         }
       Ri[i] = sum;
 #ifdef AMBE_DEBUG
@@ -335,14 +335,14 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
 #endif
 
   // generate first to elements of each Ci,k block from PRBA vector
-  rconst = ((float) 1 / ((float) 2 * M_SQRT2));
-  Cik[1][1] = (float) 0.5 *(Ri[1] + Ri[2]);
+  rconst = ( 1.0 / (2.0 * M_SQRT2));
+  Cik[1][1] = 0.5 *(Ri[1] + Ri[2]);
   Cik[1][2] = rconst * (Ri[1] - Ri[2]);
-  Cik[2][1] = (float) 0.5 *(Ri[3] + Ri[4]);
+  Cik[2][1] = 0.5 *(Ri[3] + Ri[4]);
   Cik[2][2] = rconst * (Ri[3] - Ri[4]);
-  Cik[3][1] = (float) 0.5 *(Ri[5] + Ri[6]);
+  Cik[3][1] = 0.5 *(Ri[5] + Ri[6]);
   Cik[3][2] = rconst * (Ri[5] - Ri[6]);
-  Cik[4][1] = (float) 0.5 *(Ri[7] + Ri[8]);
+  Cik[4][1] =0.5 *(Ri[7] + Ri[8]);
   Cik[4][2] = rconst * (Ri[7] - Ri[8]);
 
   // decode HOC
@@ -469,7 +469,7 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
 #ifdef AMBE_DEBUG
               printf ("j: %i Cik[%i][%i]: %f ", j, i, k, Cik[i][k]);
 #endif
-              sum = sum + ((float) ak * Cik[i][k] * cosf ((M_PI * (float) (k - 1) * ((float) j - (float) 0.5)) / (float) ji));
+              sum = sum + ((double)ak * Cik[i][k] * cos ((M_PI * (double) (k - 1) * ((double) j - 0.5)) / (double) ji));
             }
           Tl[l] = sum;
 #ifdef AMBE_DEBUG
@@ -499,20 +499,20 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
     {
 
       // eq. 40
-      flokl[l] = ((float) prev_mp->L / (float) cur_mp->L) * (float) l;
+      flokl[l] = ((double) prev_mp->L / (double) cur_mp->L) * (double) l;
       intkl[l] = (int) (flokl[l]);
 #ifdef AMBE_DEBUG
       printf ("flok%i: %f, intk%i: %i ", l, flokl[l], l, intkl[l]);
 #endif
       // eq. 41
-      deltal[l] = flokl[l] - (float) intkl[l];
+      deltal[l] = flokl[l] - (double) intkl[l];
 #ifdef AMBE_DEBUG
       printf ("delta%i: %f ", l, deltal[l]);
 #endif
       // eq 43
-      Sum43 = Sum43 + ((((float) 1 - deltal[l]) * prev_mp->log2Ml[intkl[l]]) + (deltal[l] * prev_mp->log2Ml[intkl[l] + 1]));
+      Sum43 = Sum43 + (((1.0 - deltal[l]) * prev_mp->log2Ml[intkl[l]]) + (deltal[l] * prev_mp->log2Ml[intkl[l] + 1]));
     }
-  Sum43 = (((float) 0.65 / (float) cur_mp->L) * Sum43);
+  Sum43 = ((0.65 / cur_mp->L) * Sum43);
 #ifdef AMBE_DEBUG
   printf ("\n");
   printf ("Sum43: %f\n", Sum43);
@@ -587,7 +587,7 @@ mbe_demodulateAmbe3600x2450Data (char ambe_fr[4][24])
 }
 
 void
-mbe_processAmbe2450Dataf (float *aout_buf, int *errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality)
+mbe_processAmbe2450Dataf (double *aout_buf, int *errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality)
 {
 
   int i, bad;
@@ -653,14 +653,14 @@ mbe_processAmbe2450Dataf (float *aout_buf, int *errs, int *errs2, char *err_str,
 void
 mbe_processAmbe2450Data (short *aout_buf, int *errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality)
 {
-  float float_buf[160];
+  double double_buf[160];
 
-  mbe_processAmbe2450Dataf (float_buf, errs, errs2, err_str, ambe_d, cur_mp, prev_mp, prev_mp_enhanced, uvquality);
-  mbe_floattoshort (float_buf, aout_buf);
+  mbe_processAmbe2450Dataf (double_buf, errs, errs2, err_str, ambe_d, cur_mp, prev_mp, prev_mp_enhanced, uvquality);
+  mbe_doubletoshort (double_buf, aout_buf);
 }
 
 void
-mbe_processAmbe3600x2450Framef (float *aout_buf, int *errs, int *errs2, char *err_str, char ambe_fr[4][24], char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality)
+mbe_processAmbe3600x2450Framef (double *aout_buf, int *errs, int *errs2, char *err_str, char ambe_fr[4][24], char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality)
 {
 
   *errs = 0;
@@ -676,8 +676,8 @@ mbe_processAmbe3600x2450Framef (float *aout_buf, int *errs, int *errs2, char *er
 void
 mbe_processAmbe3600x2450Frame (short *aout_buf, int *errs, int *errs2, char *err_str, char ambe_fr[4][24], char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality)
 {
-  float float_buf[160];
+  double double_buf[160];
 
-  mbe_processAmbe3600x2450Framef (float_buf, errs, errs2, err_str, ambe_fr, ambe_d, cur_mp, prev_mp, prev_mp_enhanced, uvquality);
-  mbe_floattoshort (float_buf, aout_buf);
+  mbe_processAmbe3600x2450Framef (double_buf, errs, errs2, err_str, ambe_fr, ambe_d, cur_mp, prev_mp, prev_mp_enhanced, uvquality);
+  mbe_doubletoshort (double_buf, aout_buf);
 }

@@ -32,16 +32,16 @@
 
 class Clpc {
 public:
-	void autocorrelate(float Sn[], float Rn[], int Nsam, int order);
-	void levinson_durbin(float R[],	float lpcs[], int order);
+    void autocorrelate(double Sn[], double Rn[], int Nsam, int order);
+    void levinson_durbin(double R[],	double lpcs[], int order);
 private:
-	void pre_emp(float Sn_pre[], float Sn[], float *mem, int Nsam);
-	void de_emp(float Sn_se[], float Sn[], float *mem, int Nsam);
-	void hanning_window(float Sn[],	float Wn[], int Nsam);
-	void inverse_filter(float Sn[], float a[], int Nsam, float res[], int order);
-	void synthesis_filter(float res[], float a[], int Nsam,	int order, float Sn_[]);
-	void find_aks(float Sn[], float a[], int Nsam, int order, float *E);
-	void weight(float ak[],	float gamma, int order,	float akw[]);
+    void pre_emp(double Sn_pre[], double Sn[], double *mem, int Nsam);
+    void de_emp(double Sn_se[], double Sn[], double *mem, int Nsam);
+    void hanning_window(double Sn[], double Wn[], int Nsam);
+    void inverse_filter(double Sn[], double a[], int Nsam, double res[], int order);
+    void synthesis_filter(double res[], double a[], int Nsam,	int order, double Sn_[]);
+    void find_aks(double Sn[], double a[], int Nsam, int order, double *E);
+    void weight(double ak[],	double gamma, int order,	double akw[]);
 };
 
 #endif

@@ -18,11 +18,32 @@
 #include "dudestar.h"
 #include <QApplication>
 #include <QStyleFactory>
+#include <QTranslator>
+
+#ifdef Q_OS_MACOS
+    #include "tools/keepalive.h"
+#endif
 
 int main(int argc, char *argv[])
 {
-	QApplication::setStyle("fusion");
+#ifdef Q_OS_MACOS
+    KeepAlive kalive;
+#endif
+    QApplication::setStyle("fusion");
+    QString locale = QLocale::system().name();
     QApplication a(argc, argv);
+    QDir::setCurrent(a.applicationDirPath());
+    QTranslator Trans;
+#ifdef Q_OS_LINUX
+    Trans.load("/usr/share/dudestar/translations/dudestar_" + locale +".qm");
+#else
+#ifdef Q_OS_MACOS
+    Trans.load("../Resources/dudestar"+ locale +".qm");
+#else
+    Trans.load("translations/dudestar_" + locale +".qm");
+#endif
+#endif
+    a.installTranslator(&Trans);
     DudeStar w;
     w.show();
 

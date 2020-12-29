@@ -23,16 +23,16 @@
 
 class CQbase {
 public:
-	int encode_WoE(MODEL *model, float e, float xq[]);
-	void decode_WoE(C2CONST *c2const, MODEL *model, float *e, float xq[], int n1);
-	int encode_log_Wo(C2CONST *c2const, float Wo, int bits);
-	float decode_log_Wo(C2CONST *c2const, int index, int bits);
+    int encode_WoE(MODEL *model, double e, double xq[]);
+    void decode_WoE(C2CONST *c2const, MODEL *model, double *e, double xq[], int n1);
+    int encode_log_Wo(C2CONST *c2const, double Wo, int bits);
+    double decode_log_Wo(C2CONST *c2const, int index, int bits);
 protected:
-	long quantise(const float * cb, float vec[], float w[], int k, int m, float *se);
-	void compute_weights2(const float *x, const float *xp, float *w);
-	int find_nearest_weighted(const float *codebook, int nb_entries, float *x, const float *w, int ndim);
+    long quantise(const double * cb, double vec[], double w[], int k, int m, double *se);
+    void compute_weights2(const double *x, const double *xp, double *w);
+    int find_nearest_weighted(const double *codebook, int nb_entries, double *x, const double *w, int ndim);
 
-	const float ge_coeff[2] = { 0.8, 0.9 };
+    const double ge_coeff[2] = { 0.8, 0.9 };
 
 };
 

@@ -29,14 +29,14 @@ public:
     ~MBEDecoder();
 
     void initMbeParms();
-	void process_dstar(unsigned char *d);
-	void process_dmr(unsigned char *d);
-	void process_nxdn(unsigned char *d);
-	void process_p25(unsigned char *d);
-	void ambe49to72(char ambe_data[49], char data[9]);
-	void process_frame(char ambe_fr[4][24]);
-	void processData(char ambe_data[49]);
-	void processData4400(char imbe_data[88]);
+    void process_dstar(unsigned char *d);
+    void process_dmr(unsigned char *d);
+    void process_nxdn(unsigned char *d);
+    void process_p25(unsigned char *d);
+    void ambe49to72(char ambe_data[49], char data[9]);
+    void process_frame(char ambe_fr[4][24]);
+    void processData(char ambe_data[49]);
+    void processData4400(char imbe_data[88]);
     short *getAudio(int& nbSamples)
     {
         nbSamples = m_audio_out_nb_samples;
@@ -49,34 +49,34 @@ public:
         m_audio_out_buf_p = m_audio_out_buf;
     }
 
-    void setAudioGain(float aout_gain) { m_aout_gain = aout_gain; }
+    void setAudioGain(double aout_gain) { m_aout_gain = aout_gain; }
     void setAutoGain(bool auto_gain) { m_auto_gain = auto_gain; }
-    void setVolume(float volume) { m_volume = volume; }
+    void setVolume(double volume) { m_volume = volume; }
     void setStereo(bool stereo) { m_stereo = stereo; }
     void setChannels(unsigned char channels) { m_channels = channels % 4; }
     void setUpsamplingFactor(int upsample) { m_upsample = upsample; }
     int getUpsamplingFactor() const { return m_upsample; }
-	std::queue<char> ambe72;
+    std::queue<char> ambe72;
 
 private:
     void processAudio();
-    void upsample(int upsampling, float invalue);
+    void upsample(int upsampling, double invalue);
 
-    float m_upsamplerLastValue;
+    double m_upsamplerLastValue;
 
     mbelibParms *m_mbelibParms;
     int m_errs;
     int m_errs2;
     char m_err_str[64];
 
-    float m_audio_out_temp_buf[160];   //!< output of decoder
-    float *m_audio_out_temp_buf_p;
+    double m_audio_out_temp_buf[160];   //!< output of decoder
+    double *m_audio_out_temp_buf_p;
 
-    float m_audio_out_float_buf[1120]; //!< output of upsampler - 1 frame of 160 samples upampled up to 7 times
-    float *m_audio_out_float_buf_p;
+    double m_audio_out_double_buf[1120]; //!< output of upsampler - 1 frame of 160 samples upampled up to 7 times
+    double *m_audio_out_double_buf_p;
 
-    float m_aout_max_buf[200];
-    float *m_aout_max_buf_p;
+    double m_aout_max_buf[200];
+    double *m_aout_max_buf_p;
     int m_aout_max_buf_idx;
 
     short m_audio_out_buf[2*48000];    //!< final result - 1s of L+R S16LE samples
@@ -86,20 +86,20 @@ private:
     int   m_audio_out_idx;
     int   m_audio_out_idx2;
 
-    float m_aout_gain;
-    float m_volume;
+    double m_aout_gain;
+    double m_volume;
     bool m_auto_gain;
     int m_upsample;            //!< upsampling factor
     bool m_stereo;             //!< double each audio sample to produce L+R channels
     unsigned char m_channels;  //!< when in stereo output to none (0) or only left (1), right (2) or both (3) channels
-	const int *w, *x, *y, *z;
-	static const int dW[72];
-	static const int dX[72];
-	static const int rW[36];
-	static const int rX[36];
-	static const int rY[36];
-	static const int rZ[36];
-	char ambe_d[49];
+    const int *w, *x, *y, *z;
+    static const int dW[72];
+    static const int dX[72];
+    static const int rW[36];
+    static const int rX[36];
+    static const int rY[36];
+    static const int rZ[36];
+    char ambe_d[49];
 };
 
 #endif /* MBE_H_ */

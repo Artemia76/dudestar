@@ -19,7 +19,7 @@
 #define _AMBE3600x2400_CONST_H
 
 
-const float AmbePlusLtable[126] = {
+const double AmbePlusLtable[126] = {
    9,  9,  9,  9,  9,  9,
   10, 10, 10, 10, 10, 10,
   11, 11, 11, 11, 11, 11,
@@ -131,7 +131,7 @@ const int AmbePlusLmprbl[57][4] = {
 /*
  * Gain Quantizer Levels
  */
-const float AmbePlusDg[64] = {
+const double AmbePlusDg[64] = {
 0.000000, 0.118200, 0.215088, 0.421167, 0.590088, 0.749075, 0.879395, 0.996388,
 1.092285, 1.171577, 1.236572, 1.313450, 1.376465, 1.453342, 1.516357, 1.600346,
 1.669189, 1.742847, 1.803223, 1.880234, 1.943359, 2.025067, 2.092041, 2.178042,
@@ -144,7 +144,7 @@ const float AmbePlusDg[64] = {
 /*
  * PRBA24 Vector Quantizer Levels
  */
-const float AmbePlusPRBA24[512][3] = {
+const double AmbePlusPRBA24[512][3] = {
   {-1.250000, -0.312500, -0.625000},
   {-0.750000, -0.437500, -0.437500},
   {-0.437500, -0.375000, -0.312500},
@@ -662,7 +662,7 @@ const float AmbePlusPRBA24[512][3] = {
 /*
  * PRBA58 Vector Quantizer Levels
  */
-const float AmbePlusPRBA58[128][4] = {
+const double AmbePlusPRBA58[128][4] = {
   {-0.460938, -0.265625, -0.281250, -0.062500},
   {-0.367188, -0.117188, -0.078125, -0.054688},
   {-0.250000, -0.312500, -0.164063, -0.101563},
@@ -796,7 +796,7 @@ const float AmbePlusPRBA58[128][4] = {
 /*
  * Higher Order Coefficients
  */
-const float AmbePlusHOCb5[16][4] = {
+const double AmbePlusHOCb5[16][4] = {
   {-0.617188, -0.015625, 0.015625, -0.023438},
   {-0.507813, -0.382813, -0.312500, -0.117188},
   {-0.328125, 0.046875, 0.007813, -0.015625},
@@ -818,7 +818,7 @@ const float AmbePlusHOCb5[16][4] = {
 /*
  * Higher Order Coefficients
  */
-const float AmbePlusHOCb6[16][4] = {
+const double AmbePlusHOCb6[16][4] = {
   {-0.429688, -0.046875, 0.039063, 0.000000},
   {-0.296875, 0.187500, 0.125000, 0.015625},
   {-0.203125, -0.218750, -0.039063, -0.007813},
@@ -840,7 +840,7 @@ const float AmbePlusHOCb6[16][4] = {
 /*
  * Higher Order Coefficients
  */
-const float AmbePlusHOCb7[16][4] = {
+const double AmbePlusHOCb7[16][4] = {
   {-0.382813, -0.101563, 0.007813, 0.015625},
   {-0.335938, 0.226563, 0.015625, -0.007813},
   {-0.156250, 0.031250, -0.039063, -0.054688},
@@ -862,7 +862,7 @@ const float AmbePlusHOCb7[16][4] = {
 /*
  * Higher Order Coefficients
  */
-const float AmbePlusHOCb8[16][4] = {
+const double AmbePlusHOCb8[16][4] = {
   {-0.453125, 0.179688, 0.078125, -0.015625},
   {-0.414063, -0.179688, -0.031250, 0.015625},
   {-0.281250, 0.187500, -0.203125, 0.046875},

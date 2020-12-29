@@ -22,15 +22,15 @@
 
 struct mbe_parameters
 {
-  float w0;
+  double w0;
   int L;
   int K;
   int Vl[57];
-  float Ml[57];
-  float log2Ml[57];
-  float PHIl[57];
-  float PSIl[57];
-  float gamma;
+  double Ml[57];
+  double log2Ml[57];
+  double PHIl[57];
+  double PSIl[57];
+  double gamma;
   int un;
   int repeat;
 };
@@ -52,9 +52,9 @@ int mbe_eccAmbe3600x2400C0 (char ambe_fr[4][24]);
 int mbe_eccAmbe3600x2400Data (char ambe_fr[4][24], char *ambe_d);
 int mbe_decodeAmbe2400Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp);
 void mbe_demodulateAmbe3600x2400Data (char ambe_fr[4][24]);
-void mbe_processAmbe2400Dataf (float *aout_buf, int *errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
+void mbe_processAmbe2400Dataf (double *aout_buf, int *errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 void mbe_processAmbe2400Data (short *aout_buf, int *errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
-void mbe_processAmbe3600x2400Framef (float *aout_buf, int *errs, int *errs2, char *err_str, char ambe_fr[4][24], char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
+void mbe_processAmbe3600x2400Framef (double *aout_buf, int *errs, int *errs2, char *err_str, char ambe_fr[4][24], char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 void mbe_processAmbe3600x2400Frame (short *aout_buf, int *errs, int *errs2, char *err_str, char ambe_fr[4][24], char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 
 /*
@@ -64,9 +64,9 @@ int mbe_eccAmbe3600x2450C0 (char ambe_fr[4][24]);
 int mbe_eccAmbe3600x2450Data (char ambe_fr[4][24], char *ambe_d);
 int mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp);
 void mbe_demodulateAmbe3600x2450Data (char ambe_fr[4][24]);
-void mbe_processAmbe2450Dataf (float *aout_buf, int *errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
+void mbe_processAmbe2450Dataf (double *aout_buf, int *errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 void mbe_processAmbe2450Data (short *aout_buf, int *errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
-void mbe_processAmbe3600x2450Framef (float *aout_buf, int *errs, int *errs2, char *err_str, char ambe_fr[4][24], char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
+void mbe_processAmbe3600x2450Framef (double *aout_buf, int *errs, int *errs2, char *err_str, char ambe_fr[4][24], char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 void mbe_processAmbe3600x2450Frame (short *aout_buf, int *errs, int *errs2, char *err_str, char ambe_fr[4][24], char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 
 /*
@@ -79,9 +79,9 @@ int mbe_eccImbe7200x4400C0 (char imbe_fr[8][23]);
 int mbe_eccImbe7200x4400Data (char imbe_fr[8][23], char *imbe_d);
 int mbe_decodeImbe4400Parms (char *imbe_d, mbe_parms * cur_mp, mbe_parms * prev_mp);
 void mbe_demodulateImbe7200x4400Data (char imbe[8][23]);
-void mbe_processImbe4400Dataf (float *aout_buf, int *errs, int *errs2, char *err_str, char imbe_d[88], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
+void mbe_processImbe4400Dataf (double *aout_buf, int *errs, int *errs2, char *err_str, char imbe_d[88], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 void mbe_processImbe4400Data (short *aout_buf, int *errs, int *errs2, char *err_str, char imbe_d[88], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
-void mbe_processImbe7200x4400Framef (float *aout_buf, int *errs, int *errs2, char *err_str, char imbe_fr[8][23], char imbe_d[88], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
+void mbe_processImbe7200x4400Framef (double *aout_buf, int *errs, int *errs2, char *err_str, char imbe_fr[8][23], char imbe_d[88], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 void mbe_processImbe7200x4400Frame (short *aout_buf, int *errs, int *errs2, char *err_str, char imbe_fr[8][23], char imbe_d[88], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 
 /*
@@ -93,7 +93,7 @@ int mbe_eccImbe7100x4400C0 (char imbe_fr[7][24]);
 int mbe_eccImbe7100x4400Data (char imbe_fr[7][24], char *imbe_d);
 void mbe_demodulateImbe7100x4400Data (char imbe[7][24]);
 void mbe_convertImbe7100to7200 (char *imbe_d);
-void mbe_processImbe7100x4400Framef (float *aout_buf, int *errs, int *errs2, char *err_str, char imbe_fr[7][24], char imbe_d[88], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
+void mbe_processImbe7100x4400Framef (double *aout_buf, int *errs, int *errs2, char *err_str, char imbe_fr[7][24], char imbe_d[88], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 void mbe_processImbe7100x4400Frame (short *aout_buf, int *errs, int *errs2, char *err_str, char imbe_fr[7][24], char imbe_d[88], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality);
 
 /*
@@ -104,10 +104,10 @@ void mbe_moveMbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp);
 void mbe_useLastMbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp);
 void mbe_initMbeParms (mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced);
 void mbe_spectralAmpEnhance (mbe_parms * cur_mp);
-void mbe_synthesizeSilencef (float *aout_buf);
+void mbe_synthesizeSilencef (double *aout_buf);
 void mbe_synthesizeSilence (short *aout_buf);
-void mbe_synthesizeSpeechf (float *aout_buf, mbe_parms * cur_mp, mbe_parms * prev_mp, int uvquality);
+void mbe_synthesizeSpeechf (double *aout_buf, mbe_parms * cur_mp, mbe_parms * prev_mp, int uvquality);
 void mbe_synthesizeSpeech (short *aout_buf, mbe_parms * cur_mp, mbe_parms * prev_mp, int uvquality);
-void mbe_floattoshort (float *float_buf, short *aout_buf);
+void mbe_doubletoshort (double *double_buf, short *aout_buf);
 
 #endif

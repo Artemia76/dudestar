@@ -21,7 +21,7 @@
 /*
  * Speech Synthesis Window 8k version
  */
-const float Ws[321] = {
+const double Ws[321] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

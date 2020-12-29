@@ -35,7 +35,7 @@
 
 /*---------------------------------------------------------------------------*\
 
- 				DEFINES
+                DEFINES
 
 \*---------------------------------------------------------------------------*/
 
@@ -59,29 +59,29 @@
 
 using NLP = struct nlp_tag
 {
-	int           Fs;                /* sample rate in Hz            */
-	int           m;
-	float         w[PMAX_M/DEC];     /* DFT window                   */
-	float         sq[PMAX_M];	     /* squared speech samples       */
-	float         mem_x,mem_y;       /* memory for notch filter      */
-	float         mem_fir[NLP_NTAP]; /* decimation FIR filter memory */
-	FFT_STATE     fft_cfg;           /* kiss FFT config              */
-	std::vector<float> Sn16k;	     /* Fs=16kHz input speech vector */
+    int           Fs;                /* sample rate in Hz            */
+    int           m;
+    double         w[PMAX_M/DEC];     /* DFT window                   */
+    double         sq[PMAX_M];	     /* squared speech samples       */
+    double         mem_x,mem_y;       /* memory for notch filter      */
+    double         mem_fir[NLP_NTAP]; /* decimation FIR filter memory */
+    FFT_STATE     fft_cfg;           /* kiss FFT config              */
+    std::vector<double> Sn16k;	     /* Fs=16kHz input speech vector */
 };
 
 
 class Cnlp {
 public:
-	void nlp_create(C2CONST *c2const);
-	void nlp_destroy();
-	float nlp(float Sn[], int n, float *pitch_samples, float *prev_f0);
-	void codec2_fft_inplace(FFT_STATE &cfg, std::complex<float> *inout);
+    void nlp_create(C2CONST *c2const);
+    void nlp_destroy();
+    double nlp(double Sn[], int n, double *pitch_samples, double *prev_f0);
+    void codec2_fft_inplace(FFT_STATE &cfg, std::complex<double> *inout);
 
 private:
-	float post_process_sub_multiples(std::complex<float> Fw[], int pmax, float gmax, int gmax_bin, float *prev_f0);
-	void fdmdv_16_to_8(float out8k[], float in16k[], int n);
+    double post_process_sub_multiples(std::complex<double> Fw[], int pmax, double gmax, int gmax_bin, double *prev_f0);
+    void fdmdv_16_to_8(double out8k[], double in16k[], int n);
 
-	NLP snlp;
+    NLP snlp;
 };
 
 #endif

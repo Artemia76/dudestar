@@ -33,7 +33,7 @@
 
 /*---------------------------------------------------------------------------*\
 
-				DEFINES
+                DEFINES
 
 \*---------------------------------------------------------------------------*/
 
@@ -60,11 +60,11 @@
 #define P_MIN_S    0.0025		/* minimum pitch period in s            */
 #define P_MAX_S    0.0200		/* maximum pitch period in s            */
 #define MAXFACTORS 32			// e.g. an fft of length 128 has 4 factors
- 								// as far as kissfft is concerned 4*4*4*2
+                                // as far as kissfft is concerned 4*4*4*2
 
 /*---------------------------------------------------------------------------*\
 
-				TYPEDEFS
+                TYPEDEFS
 
 \*---------------------------------------------------------------------------*/
 
@@ -78,8 +78,8 @@ using C2CONST = struct c2const_tag
     int   m_pitch;       /* pitch estimation window size in samples  */
     int   p_min;         /* minimum pitch period in samples          */
     int   p_max;         /* maximum pitch period in samples          */
-    float Wo_min;
-    float Wo_max;
+    double Wo_min;
+    double Wo_max;
     int   nw;            /* analysis window size in samples          */
     int   tw;            /* trapezoidal synthesis window overlap     */
 };
@@ -88,10 +88,10 @@ using C2CONST = struct c2const_tag
 
 using MODEL = struct model_tag
 {
-    float Wo;		  /* fundamental frequency estimate in radians  */
+    double Wo;		  /* fundamental frequency estimate in radians  */
     int   L;		  /* number of harmonics                        */
-    float A[MAX_AMP+1];	  /* amplitiude of each harmonic                */
-    float phi[MAX_AMP+1]; /* phase of each harmonic                     */
+    double A[MAX_AMP+1];	  /* amplitiude of each harmonic                */
+    double phi[MAX_AMP+1]; /* phase of each harmonic                     */
     int   voiced;	  /* non-zero if this frame is voiced           */
 };
 
@@ -99,10 +99,10 @@ using MODEL = struct model_tag
 
 struct lsp_codebook
 {
-	int     k; /* dimension of vector  */
-	int log2m; /* number of bits in m  */
-	int     m; /* elements in codebook */
-	float *cb; /* The elements         */
+    int     k; /* dimension of vector  */
+    int log2m; /* number of bits in m  */
+    int     m; /* elements in codebook */
+    double *cb; /* The elements         */
 };
 
 using FFT_STATE = struct fft_state_tag
@@ -110,23 +110,23 @@ using FFT_STATE = struct fft_state_tag
     int  nfft;
     bool inverse;
     int  factors[2*MAXFACTORS];
-    std::vector<std::complex<float>> twiddles;
+    std::vector<std::complex<double>> twiddles;
 };
 
 using FFTR_STATE = struct fftr_state_tag
 {
-	FFT_STATE substate;
-	std::vector<std::complex<float>> tmpbuf;
-	std::vector<std::complex<float>> super_twiddles;
+    FFT_STATE substate;
+    std::vector<std::complex<double>> tmpbuf;
+    std::vector<std::complex<double>> super_twiddles;
 };
 
 extern const struct lsp_codebook lsp_cb[];
 extern const struct lsp_codebook lsp_cbd[];
 extern const struct lsp_codebook ge_cb[];
 
-inline float exp10f(float val)
+inline double exp10(double val)
 {
-	return pow(10.0, val);
+    return pow(10.0, val);
 }
 
 #endif
