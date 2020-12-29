@@ -54,14 +54,14 @@ Source: "{#BaseDir}Qt5Network.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BaseDir}Qt5SerialPort.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BaseDir}Qt5Svg.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BaseDir}Qt5Widgets.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BaseDir}audio\*"; DestDir: "{app}\translations"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#BaseDir}audio\*"; DestDir: "{app}\audio"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#BaseDir}bearer\*"; DestDir: "{app}\bearer"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#BaseDir}iconengines\*"; DestDir: "{app}\iconengines"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#BaseDir}imageformats\*"; DestDir: "{app}\imageformats"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#BaseDir}mediaservice\*"; DestDir: "{app}\imageformats"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#BaseDir}mediaservice\*"; DestDir: "{app}\mediaservice"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#BaseDir}platforms\*"; DestDir: "{app}\platforms"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#BaseDir}playlistformats\*"; DestDir: "{app}\platforms"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#BaseDir}styles\*"; DestDir: "{app}\platforms"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#BaseDir}playlistformats\*"; DestDir: "{app}\playlistformats"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#BaseDir}styles\*"; DestDir: "{app}\styles"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#BaseDir}translations\*"; DestDir: "{app}\translations"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
