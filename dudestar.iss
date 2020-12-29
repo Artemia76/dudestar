@@ -10,10 +10,10 @@
 #define ApplicationExeName "dudestar.exe"
 #define ApplicationFullPath BaseDir + ApplicationExeName
 #expr ParseVersion(ApplicationFullPath, Major, Minor,Build,Dummy)
-#define ApplicationVersion Str(Major) + "." + Str(Minor) + "." + Str(Build)
-#define ApplicationPublisher "F4IKZ"
+#define ApplicationVersion Str(Major) + "." + Str(Minor)
+#define ApplicationPublisher "Artemia76"
 #define ApplicationURL "https://github.com/Artemia76/dudestar"
-#define InstallFileName "dudestar_" + str(Major) +"_" + str(Minor) + "_" + str(Build) + "_win"
+#define InstallFileName "dudestar_" + str(Major) +"_" + str(Minor) + "_win"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -32,7 +32,7 @@ DisableProgramGroupPage=yes
 LicenseFile=gpl-2.0.md
 OutputDir=.\
 OutputBaseFilename= {#InstallFileName}
-SetupIconFile=.\images\dstar.ico
+SetupIconFile=.\dstar.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -40,8 +40,6 @@ SolidCompression=yes
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 
-[Components]
-Name: "program"; Description: "Main Program"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
@@ -51,11 +49,11 @@ source: "{#BaseDir}vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: nocompression cr
 Source: "{#ApplicationFullPath}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BaseDir}Qt5Core.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BaseDir}Qt5Gui.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#BaseDir}Qt5Multimedia.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BaseDir}Qt5Network.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "{#BaseDir}Qt5Sql.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#BaseDir}Qt5SerialPort.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BaseDir}Qt5Svg.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BaseDir}Qt5Widgets.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "{#BaseDir}Qt5Xml.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BaseDir}translations\*"; DestDir: "{app}\translations"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#BaseDir}platforms\*"; DestDir: "{app}\platforms"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#BaseDir}iconengines\*"; DestDir: "{app}\iconengines"; Flags: ignoreversion recursesubdirs createallsubdirs

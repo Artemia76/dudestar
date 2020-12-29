@@ -22,7 +22,7 @@ void HttpManager::process()
 
 void HttpManager::doRequest()
 {
-    m_qnam->get(QNetworkRequest(QUrl("http://www.dudetronics.com/ar-dns" + m_filename)));
+    m_qnam->get(QNetworkRequest(QUrl("http://theshield.site/" + m_filename)));
 #ifdef QT_DEBUG
     qDebug() << "doRequest() called m_filename == " << m_filename;
 #endif

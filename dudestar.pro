@@ -5,8 +5,10 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 #Extract Git version from Tag
 win32 {
     GIT_VERSION=$$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --tags)
+    GIT_COMMIT=$$system(git rev-parse --short HEAD)
 } else {
     GIT_VERSION='$(shell cd $$PWD;git --work-tree $$PWD describe --abbrev=0 --tags)'
+    GIT_COMMIT='$(shell cd $$PWD;git rev-parse --short HEAD)'
 }
 
 isEmpty(GIT_VERSION) {
@@ -18,16 +20,14 @@ isEmpty(GIT_VERSION) {
   VERSIONS = $$split(GIT_VERSION, ".")
   VERSION_MAJOR = $$member(VERSIONS, 0)
   VERSION_MINOR = $$member(VERSIONS, 1)
-  VERSION_BUILD = $$member(VERSIONS, 2)
+  VERSION_BUILD = $${GIT_COMMIT}
   message(Find Git Version : $$VERSIONS)
 }
 
 DEFINES += APP_NAME=\\\"$${TARGET}\\\"
 DEFINES += APP_MAJOR=$$VERSION_MAJOR
 DEFINES += APP_MINOR=$$VERSION_MINOR
-DEFINES += APP_BUILD=$$VERSION_BUILD
-
-DEFINES += GIT_VERSION=\"\\\"$${GIT_VERSION}\\\"\"
+DEFINES += APP_BUILD=\\\"$${VERSION_BUILD}\\\"
 
 QMAKE_EXTRA_TARGETS += versionTarget
 
@@ -82,6 +82,9 @@ macx {
 # Print values when running qmake
 !isEqual(QUIET, "true") {
 message(-----------------------------------)
+message(VERSION_MAJOR: $$VERSION_MAJOR)
+message(VERSION_MINOR: $$VERSION_MINOR)
+message(VERSION_BUILD: $$VERSION_BUILD)
 message(DEPLOY_BASE: $$DEPLOY_BASE)
 message(DEFINES: $$DEFINES)
 message(INCLUDEPATH: $$INCLUDEPATH)
@@ -402,7 +405,7 @@ win32 {
     #deploy.commands += xcopy /Y $$p($$PWD/*.txt) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
     deploy.commands += xcopy /Y $$p($$PWD/gpl-2.0.md) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
     deploy.commands += xcopy /Y $$p($$PWD/dudestar.iss) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
-    deploy.commands += xcopy /Y $$p($$PWD/gfx/dstar.ico) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
+    deploy.commands += xcopy /Y $$p($$PWD/images/dstar.ico) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
     deploy.commands += $$p($$[QT_INSTALL_BINS]/windeployqt) $$WINDEPLOY_FLAGS $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
     deploy.commands += compil32 /cc $$p($$DEPLOY_BASE/$$TARGET_NAME/dudestar.iss)
 }

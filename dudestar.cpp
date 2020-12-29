@@ -28,6 +28,7 @@
 #include <QFileDialog>
 #include <QSerialPortInfo>
 #include <time.h>
+#include "tools/version.h"
 
 #define ENDLINE "\n"
 
@@ -222,7 +223,9 @@ void DudeStar::init_gui()
     ui->comboModule->setStyleSheet("combobox-popup: 0;");
     //ui->comboPlayback->setStyleSheet("combobox-popup: 0;");
     //ui->comboCapture->setStyleSheet("combobox-popup: 0;");
-    ui->textAbout->setHtml(tr("<p>DUDE-Star git build %1</p><p>Copyright (C) 2019 Doug McLain AD8DP</p>"
+    ui->textAbout->setHtml(tr("<p>%1 Version %2.%3 Build %4</p>"
+                              "<p>Adapted by Artemia76 for TheShield Network</p>"
+                              "<p>Copyright (C) 2019 Doug McLain AD8DP</p>"
                               "<p>This program is free software; you can redistribute it "
                               "and/or modify it under the terms of the GNU General Public "
                               "License as published by the Free Software Foundation; "
@@ -232,7 +235,7 @@ void DudeStar::init_gui()
                               "PARTICULAR PURPOSE. See the GNU General Public License for "
                               "more details.\n\nYou should have received a copy of the GNU "
                               "General Public License along with this program. "
-                              "If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a></p>").arg(GIT_VERSION));
+                              "If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a></p>").arg(APP_NAME).arg(APP_MAJOR).arg(APP_MINOR).arg(APP_BUILD));
     m_uitimer = new QTimer();
     connect(m_uitimer, SIGNAL(timeout()), this, SLOT(update_ui()));
     m_uitimer->start(10);

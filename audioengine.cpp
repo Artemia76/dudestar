@@ -82,7 +82,7 @@ void AudioEngine::init()
             tempformat = format;
         }
 #ifdef QT_DEBUG
-        qDebug()<< tr("Using playback device) ") << info.deviceName();
+        qDebug()<< tr("Using playback device ") << info.deviceName();
 #endif
         m_out = new QAudioOutput(info, tempformat, this);
         m_out->setBufferSize(1600);
