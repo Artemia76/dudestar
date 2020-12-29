@@ -97,6 +97,9 @@ DudeStar::~DudeStar()
     stream << "RPTR1:" << ui->editRPTR1->text().simplified() << ENDLINE;
     stream << "RPTR2:" << ui->editRPTR2->text().simplified() << ENDLINE;
     stream << "USRTXT:" << ui->editUserTxt->text() << ENDLINE;
+    stream << "MICGAIN:" << ui->sliderMic->value() << ENDLINE;
+    stream << "VOLGAIN:" << ui->sliderVolume->value() << ENDLINE;
+    stream << "CODECGAIN:" << ui->sliderCodecGain->value() << ENDLINE;
     f.close();
     delete ui;
 }
@@ -1244,6 +1247,15 @@ void DudeStar::process_settings()
                 }
                 if(sl.at(0) == "USRTXT"){
                     ui->editUserTxt->setText(sl.at(1).simplified());
+                }
+                if(sl.at(0) == "MICGAIN"){
+                    ui->sliderMic->setValue(sl.at(1).toInt());
+                }
+                if(sl.at(0) == "VOLGAIN"){
+                    ui->sliderVolume->setValue(sl.at(1).toInt());
+                }
+                if(sl.at(0) == "CODECGAIN"){
+                    ui->sliderCodecGain->setValue(sl.at(1).toInt());
                 }
                 ui->comboHost->blockSignals(false);
             }
