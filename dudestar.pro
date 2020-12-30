@@ -66,6 +66,12 @@ win32 {
 
     CONFIG(debug, debug|release) : WINDEPLOY_FLAGS += --debug
     CONFIG(release, debug|release) : WINDEPLOY_FLAGS += --release
+
+    DEFINES += _WINSOCKAPI_
+    LIBS += -lWs2_32
+    LIBS += -liphlpapi
+    LIBS += -luser32
+    LIBS += -lole32
 }
 
 macx {
@@ -294,7 +300,7 @@ macx {
 #Windows - Copy Qt Style and translation
 win32 {
     defineReplace(p){return ($$shell_quote($$shell_path($$1)))}
-    exists($$OUT_PWD/translations) {
+    exists($$p($$OUT_PWD/translations)) {
         message("existing")
     } else {
         copydata.commands = mkdir $$p($$OUT_PWD/translations) &&
