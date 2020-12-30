@@ -13,7 +13,7 @@ win32 {
 
 isEmpty(GIT_VERSION) {
 # Application Version
-  VERSION_MAJOR = 0
+  VERSION_MAJOR = 1
   VERSION_MINOR = 0
   VERSION_BUILD = 1
 } else {
@@ -130,6 +130,7 @@ SOURCES += \
         dudestar.cpp \
         ecc.c \
         httpmanager.cpp \
+        iaxcodec.cpp \
         imbe7200x4400.c \
         imbe_vocoder/aux_sub.cc \
         imbe_vocoder/basicop2.cc \
@@ -200,6 +201,8 @@ HEADERS += \
         dudestar.h \
         ecc_const.h \
         httpmanager.h \
+        iaxcodec.h \
+        iaxdefines.h \
         imbe7200x4400_const.h \
         imbe_vocoder/aux_sub.h \
         imbe_vocoder/basic_op.h \
@@ -255,7 +258,7 @@ FORMS += \
 contains(DEFINES, USE_FLITE){
     LIBS += -lflite_cmu_us_slt -lflite_cmu_us_kal16 -lflite_cmu_us_awb -lflite_cmu_us_rms -lflite_usenglish -lflite_cmulex -lflite -lasound
 }
-RC_ICONS = images/dstar.ico
+RC_ICONS = images/dudestar.ico
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -265,7 +268,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 RESOURCES += \
     dudestar.qrc
 
-ICON = images/dstar.png
+ICON = images/dudestar.png
 
 win32 : RC_FILE = dudestar.rc
 
@@ -314,7 +317,7 @@ unix:!macx {
     INSTALLS += Translation
 
     Icons.path = $${PREFIX}/share/icons/hicolor/72x72/apps
-    Icons.files = $$PWD/images/dstar.png
+    Icons.files = $$PWD/images/dudestar.png
     INSTALLS += Icons
 
     Shortcut.path = $${PREFIX}/share/applications
@@ -394,7 +397,7 @@ macx {
 # Windows specific deploy target
 win32 {
     defineReplace(p){return ($$shell_quote($$shell_path($$1)))}
-    RC_ICONS = $$p($$PWD/images/dstar.ico)
+    RC_ICONS = $$p($$PWD/images/dudestar.ico)
     CONFIG(debug, debug|release) : DLL_SUFFIX=d
     CONFIG(release, debug|release) : DLL_SUFFIX=
     deploy.commands = ( rmdir /s /q $$p($$DEPLOY_BASE) || echo Directory already empty) &&
@@ -405,7 +408,7 @@ win32 {
     #deploy.commands += xcopy /Y $$p($$PWD/*.txt) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
     deploy.commands += xcopy /Y $$p($$PWD/gpl-2.0.md) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
     deploy.commands += xcopy /Y $$p($$PWD/dudestar.iss) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
-    deploy.commands += xcopy /Y $$p($$PWD/images/dstar.ico) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
+    deploy.commands += xcopy /Y $$p($$PWD/images/dudestar.ico) $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
     deploy.commands += $$p($$[QT_INSTALL_BINS]/windeployqt) $$WINDEPLOY_FLAGS $$p($$DEPLOY_BASE/$$TARGET_NAME) &&
     deploy.commands += compil32 /cc $$p($$DEPLOY_BASE/$$TARGET_NAME/dudestar.iss)
 }

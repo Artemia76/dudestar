@@ -32,7 +32,7 @@ DisableProgramGroupPage=yes
 LicenseFile=gpl-2.0.md
 OutputDir=.\
 OutputBaseFilename= {#InstallFileName}
-SetupIconFile=.\dstar.ico
+SetupIconFile=.\dudestar.ico
 Compression=lzma
 SolidCompression=yes
 
