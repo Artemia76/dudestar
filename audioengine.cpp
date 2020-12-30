@@ -70,7 +70,7 @@ void AudioEngine::init()
     QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
 
     if(devices.size() == 0){
-        fprintf(stderr, "No audio playback hardware found\n");fflush(stderr);
+        qWarning() << tr("No audio playback hardware found");
     }
     else{
         QAudioDeviceInfo info(QAudioDeviceInfo::defaultOutputDevice());
@@ -140,7 +140,7 @@ void AudioEngine::init()
 #ifdef QT_DEBUG
         qDebug() << tr("Using recording device ") << info.deviceName();
 #endif
-        int sr = 8000;
+        /*int sr = 8000;
         if(MACHAK){
             if( (info.deviceName() == "Built-in Microphone") ||
                 (info.deviceName() == "MacBook Pro Microphone") ){
@@ -152,7 +152,7 @@ void AudioEngine::init()
                 m_srm = 6;
             }
         }
-        format.setSampleRate(sr);
+        format.setSampleRate(sr);*/
         m_in = new QAudioInput(info, format, this);
     }
 }
@@ -203,7 +203,7 @@ void AudioEngine::input_data_received()
         fflush(stderr);
 */
         for(int i = 0; i < len; i += (2 * m_srm)){
-            m_audioinq.enqueue(((data.data()[i+1] << 8) & 0xff00) | (data.data()[i] & 0xff));
+            m_audioinq.enqueue(((data.data()[i+1] << 8) & (quint16)0xff00) | (data.data()[i] & (quint16)0x00ff));
         }
     }
 }

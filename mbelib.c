@@ -370,7 +370,7 @@ mbe_synthesizeSpeechf (double *aout_buf, mbe_parms * cur_mp, mbe_parms * prev_mp
               // unvoiced multisine mix
               for (i = 0; i < uvquality; i++)
                 {
-                  C3 = C3 + cos ((pw0 * (double) n * (l + ((float) i * uvstep) - uvoffset)) + rphase[i]);
+                  C3 = C3 + cos ((pw0 * (double) n * (l + ((double) i * uvstep) - uvoffset)) + rphase[i]);
                   if (pw0l > uvthreshold)
                     {
                       C3 = C3 + ((pw0l - uvthreshold) * uvrand * mbe_rand());
@@ -381,7 +381,7 @@ mbe_synthesizeSpeechf (double *aout_buf, mbe_parms * cur_mp, mbe_parms * prev_mp
               Ss++;
             }
         }
-//      else if (((cur_mp->Vl[l] == 1) || (prev_mp->Vl[l] == 1)) && ((l >= 8) || (fabsf (cw0 - pw0) >= ((float) 0.1 * cw0))))
+//      else if (((cur_mp->Vl[l] == 1) || (prev_mp->Vl[l] == 1)) && ((l >= 8) || (fabsf (cw0 - pw0) >= ((double) 0.1 * cw0))))
       else if ((cur_mp->Vl[l] == 1) || (prev_mp->Vl[l] == 1))
         {
           Ss = aout_buf;
@@ -389,10 +389,10 @@ mbe_synthesizeSpeechf (double *aout_buf, mbe_parms * cur_mp, mbe_parms * prev_mp
             {
               C1 = 0;
               // eq 133-1
-              C1 = Ws[n + N] * prev_mp->Ml[l] * cos ((pw0l * (float) n) + prev_mp->PHIl[l]);
+              C1 = Ws[n + N] * prev_mp->Ml[l] * cos ((pw0l * (double) n) + prev_mp->PHIl[l]);
               C2 = 0;
               // eq 133-2
-              C2 = Ws[n] * cur_mp->Ml[l] * cos ((cw0l * (float) (n - N)) + cur_mp->PHIl[l]);
+              C2 = Ws[n] * cur_mp->Ml[l] * cos ((cw0l * (double) (n - N)) + cur_mp->PHIl[l]);
               *Ss = *Ss + C1 + C2;
               Ss++;
             }
@@ -403,15 +403,15 @@ mbe_synthesizeSpeechf (double *aout_buf, mbe_parms * cur_mp, mbe_parms * prev_mp
         {
           Ss = aout_buf;
           // eq 137
-          deltaphil = cur_mp->PHIl[l] - prev_mp->PHIl[l] - (((pw0 + cw0) * (float) (l * N)) / (float) 2);
+          deltaphil = cur_mp->PHIl[l] - prev_mp->PHIl[l] - (((pw0 + cw0) * (double) (l * N)) / (double) 2);
           // eq 138
-          deltawl = ((float) 1 / (float) N) * (deltaphil - ((float) 2 * M_PI * (int) ((deltaphil + M_PI) / (M_PI * (float) 2))));
+          deltawl = ((double) 1 / (double) N) * (deltaphil - ((double) 2 * M_PI * (int) ((deltaphil + M_PI) / (M_PI * (double) 2))));
           for (n = 0; n < N; n++)
             {
               // eq 136
-              thetaln = prev_mp->PHIl[l] + ((pw0l + deltawl) * (float) n) + (((cw0 - pw0) * ((float) (l * n * n)) / (float) (2 * N)));
+              thetaln = prev_mp->PHIl[l] + ((pw0l + deltawl) * (double) n) + (((cw0 - pw0) * ((double) (l * n * n)) / (double) (2 * N)));
               // eq 135
-              aln = prev_mp->Ml[l] + (((float) n / (float) N) * (cur_mp->Ml[l] - prev_mp->Ml[l]));
+              aln = prev_mp->Ml[l] + (((double) n / (double) N) * (cur_mp->Ml[l] - prev_mp->Ml[l]));
               // eq 134
               *Ss = *Ss + (aln * cosf (thetaln));
               Ss++;
@@ -437,7 +437,7 @@ mbe_synthesizeSpeechf (double *aout_buf, mbe_parms * cur_mp, mbe_parms * prev_mp
               // unvoiced multisine mix
               for (i = 0; i < uvquality; i++)
                 {
-                  C3 = C3 + cos ((pw0 * (float) n * ((float) l + ((float) i * uvstep) - uvoffset)) + rphase[i]);
+                  C3 = C3 + cos ((pw0 * (double) n * ((double) l + ((double) i * uvstep) - uvoffset)) + rphase[i]);
                   if (pw0l > uvthreshold)
                     {
                       C3 = C3 + ((pw0l - uvthreshold) * uvrand * mbe_rand());
@@ -448,7 +448,7 @@ mbe_synthesizeSpeechf (double *aout_buf, mbe_parms * cur_mp, mbe_parms * prev_mp
               // unvoiced multisine mix
               for (i = 0; i < uvquality; i++)
                 {
-                  C4 = C4 + cos ((cw0 * (float) n * ((float) l + ((float) i * uvstep) - uvoffset)) + rphase2[i]);
+                  C4 = C4 + cos ((cw0 * (double) n * ((double) l + ((double) i * uvstep) - uvoffset)) + rphase2[i]);
                   if (cw0l > uvthreshold)
                     {
                       C4 = C4 + ((cw0l - uvthreshold) * uvrand * mbe_rand());
@@ -472,7 +472,7 @@ mbe_synthesizeSpeech (short *aout_buf, mbe_parms * cur_mp, mbe_parms * prev_mp, 
 }
 
 void
-mbe_doubletoshort (double *float_buf, short *aout_buf)
+mbe_doubletoshort (double *double_buf, short *aout_buf)
 {
 
   short *aout_buf_p;
@@ -482,7 +482,7 @@ mbe_doubletoshort (double *float_buf, short *aout_buf)
 
   again = 7;
   aout_buf_p = aout_buf;
-  double_buf_p = float_buf;
+  double_buf_p = double_buf;
   for (i = 0; i < 160; i++)
     {
       audio = again * *double_buf_p;

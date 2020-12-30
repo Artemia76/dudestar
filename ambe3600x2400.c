@@ -258,9 +258,9 @@ mbe_decodeAmbe2400Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
 #endif
     return (3);
   }
-  //fprintf(stderr,"Voice Frame, Pitch = %f\n", powf(2, ((float)b0+195.626)/-46.368)*8000); // was 45.368
-  //fprintf(stderr,"Voice Frame, rawPitch = %02d, Pitch = %f\n", b0, powf(2, ((-1*(float)(17661/((int)1<<12))) - (2.1336e-2 * ((float)b0+0.5))))*8000);
-  //fprintf(stderr,"Voice Frame, Pitch = %f, ", powf(2, (-4.311767578125 - (2.1336e-2 * ((float)b0+0.5))))*8000);
+  //fprintf(stderr,"Voice Frame, Pitch = %f\n", powf(2, ((double)b0+195.626)/-46.368)*8000); // was 45.368
+  //fprintf(stderr,"Voice Frame, rawPitch = %02d, Pitch = %f\n", b0, powf(2, ((-1*(double)(17661/((int)1<<12))) - (2.1336e-2 * ((double)b0+0.5))))*8000);
+  //fprintf(stderr,"Voice Frame, Pitch = %f, ", powf(2, (-4.311767578125 - (2.1336e-2 * ((double)b0+0.5))))*8000);
 
   // decode fundamental frequency w0 from b0 is already done
 
@@ -268,17 +268,17 @@ mbe_decodeAmbe2400Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
     {
       // w0 from specification document
       //f0 = AmbeW0table[b0];
-      //cur_mp->w0 = f0 * (float) 2 *M_PI;
+      //cur_mp->w0 = f0 * (double) 2 *M_PI;
       // w0 from patent filings
-      //f0 = powf (2, ((float) b0 + (float) 195.626) / -(float) 46.368); // was 45.368
+      //f0 = powf (2, ((double) b0 + (double) 195.626) / -(double) 46.368); // was 45.368
       // w0 guess
       f0 = pow(2.0, (-4.311767578125 - (2.1336e-2 * ((double)b0+0.5))));
       cur_mp->w0 = f0 * 2.0 *M_PI;
     }
 
   unvc = 0.2046 / sqrt (cur_mp->w0);
-  //unvc = (float) 1;
-  //unvc = (float) 0.2046 / sqrtf (f0);
+  //unvc = (double) 1;
+  //unvc = (double) 0.2046 / sqrtf (f0);
 
   // decode L
   if (silence == 0)
@@ -287,7 +287,7 @@ mbe_decodeAmbe2400Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
       // lookup L in tabl3
       L = (int)AmbePlusLtable[b0];
       // L formula from patent filings
-      //L=(int)((float)0.4627 / f0);
+      //L=(int)((double)0.4627 / f0);
       cur_mp->L = L;
     }
   L9 = L - 9;
@@ -304,9 +304,9 @@ mbe_decodeAmbe2400Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
   for (l = 1; l <= L; l++)
     {
       // jl from specification document
-      jl = (int) ((float) l * (float) 16.0 * f0);
+      jl = (int) ((double) l * 16.0 * f0);
       // jl from patent filings?
-      //jl = (int)(((float)l * (float)16.0 * f0) + 0.25);
+      //jl = (int)(((double)l * (double)16.0 * f0) + 0.25);
 
       if (silence == 0)
         {
@@ -331,7 +331,7 @@ mbe_decodeAmbe2400Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
   b2 |= ambe_d[43];
   //fprintf(stderr,"Gain = %d,\n", b2);
   deltaGamma = AmbePlusDg[b2];
-  cur_mp->gamma = deltaGamma + ((float) 0.5 * prev_mp->gamma);
+  cur_mp->gamma = deltaGamma + (0.5 * prev_mp->gamma);
 #ifdef AMBE_DEBUG
   printf ("b2: %i, deltaGamma: %f gamma: %f gamma-1: %f\n", b2, deltaGamma, cur_mp->gamma, prev_mp->gamma);
 #endif
@@ -563,20 +563,20 @@ mbe_decodeAmbe2400Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
     {
 
       // eq. 40
-      flokl[l] = ((float) prev_mp->L / (float) cur_mp->L) * (float) l;
+      flokl[l] = ((double) prev_mp->L / (double) cur_mp->L) * (double) l;
       intkl[l] = (int) (flokl[l]);
 #ifdef AMBE_DEBUG
       printf ("flok%i: %f, intk%i: %i ", l, flokl[l], l, intkl[l]);
 #endif
       // eq. 41
-      deltal[l] = flokl[l] - (float) intkl[l];
+      deltal[l] = flokl[l] - (double) intkl[l];
 #ifdef AMBE_DEBUG
       printf ("delta%i: %f ", l, deltal[l]);
 #endif
       // eq 43
-      Sum43 = Sum43 + ((((float) 1 - deltal[l]) * prev_mp->log2Ml[intkl[l]]) + (deltal[l] * prev_mp->log2Ml[intkl[l] + 1]));
+      Sum43 = Sum43 + ((( 1.0 - deltal[l]) * prev_mp->log2Ml[intkl[l]]) + (deltal[l] * prev_mp->log2Ml[intkl[l] + 1]));
     }
-  Sum43 = (((float) 0.65 / (float) cur_mp->L) * Sum43);
+  Sum43 = ((0.65 / (double) cur_mp->L) * Sum43);
 #ifdef AMBE_DEBUG
   printf ("\n");
   printf ("Sum43: %f\n", Sum43);
@@ -588,24 +588,24 @@ mbe_decodeAmbe2400Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
     {
       Sum42 += Tl[l];
     }
-  Sum42 = Sum42 / (float) cur_mp->L;
-  BigGamma = cur_mp->gamma - ((float) 0.5 * (log ((float) cur_mp->L) / log ((float) 2))) - Sum42;
-  //BigGamma=cur_mp->gamma - ((float)0.5 * log((float)cur_mp->L)) - Sum42;
+  Sum42 = Sum42 / (double) cur_mp->L;
+  BigGamma = cur_mp->gamma - (0.5 * (log ((double) cur_mp->L) / log (2.0))) - Sum42;
+  //BigGamma=cur_mp->gamma - ((double)0.5 * log((double)cur_mp->L)) - Sum42;
 
   // Part 3
   for (l = 1; l <= cur_mp->L; l++)
     {
-      c1 = ((float) 0.65 * ((float) 1 - deltal[l]) * prev_mp->log2Ml[intkl[l]]);
-      c2 = ((float) 0.65 * deltal[l] * prev_mp->log2Ml[intkl[l] + 1]);
+      c1 = ( 0.65 * ( 1.0 - deltal[l]) * prev_mp->log2Ml[intkl[l]]);
+      c2 = ( 0.65 * deltal[l] * prev_mp->log2Ml[intkl[l] + 1]);
       cur_mp->log2Ml[l] = Tl[l] + c1 + c2 - Sum43 + BigGamma;
       // inverse log to generate spectral amplitudes
       if (cur_mp->Vl[l] == 1)
         {
-          cur_mp->Ml[l] = exp ((float) 0.693 * cur_mp->log2Ml[l]);
+          cur_mp->Ml[l] = exp ( 0.693 * cur_mp->log2Ml[l]);
         }
       else
         {
-          cur_mp->Ml[l] = unvc * exp ((float) 0.693 * cur_mp->log2Ml[l]);
+          cur_mp->Ml[l] = unvc * exp ( 0.693 * cur_mp->log2Ml[l]);
         }
 #ifdef AMBE_DEBUG
       printf ("flokl[%i]: %f, intkl[%i]: %i ", l, flokl[l], l, intkl[l]);

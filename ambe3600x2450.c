@@ -209,13 +209,13 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
       f0 = AmbeW0table[b0];
       cur_mp->w0 = f0 * 2.0 *M_PI;
       // w0 from patent filings
-      //f0 = powf (2, ((float) b0 + (float) 195.626) / -(float) 45.368);
-      //cur_mp->w0 = f0 * (float) 2 *M_PI;
+      //f0 = powf (2, ((double) b0 + 195.626) / -(double) 45.368);
+      //cur_mp->w0 = f0 * (double) 2 *M_PI;
     }
 
   unvc = 0.2046 / sqrt (cur_mp->w0);
-  //unvc = (float) 1;
-  //unvc = (float) 0.2046 / sqrtf (f0);
+  //unvc = (double) 1;
+  //unvc = (double) 0.2046 / sqrtf (f0);
 
   // decode L
   if (silence == 0)
@@ -224,7 +224,7 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
       // lookup L in tabl3
       L = (int)AmbeLtable[b0];
       // L formula from patent filings
-      //L=(int)((float)0.4627 / f0);
+      //L=(int)((double)0.4627 / f0);
       cur_mp->L = L;
     }
   L9 = L - 9;
@@ -243,7 +243,7 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
       // jl from specification document
       jl = (int) ( l * 16.0 * f0);
       // jl from patent filings?
-      //jl = (int)(((float)l * (float)16.0 * f0) + 0.25);
+      //jl = (int)(((double)l * (double)16.0 * f0) + 0.25);
 
       if (silence == 0)
         {
@@ -524,24 +524,24 @@ mbe_decodeAmbe2450Parms (char *ambe_d, mbe_parms * cur_mp, mbe_parms * prev_mp)
     {
       Sum42 += Tl[l];
     }
-  Sum42 = Sum42 / (float) cur_mp->L;
-  BigGamma = cur_mp->gamma - ((float) 0.5 * (log ((float) cur_mp->L) / log ((float) 2))) - Sum42;
-  //BigGamma=cur_mp->gamma - ((float)0.5 * log((float)cur_mp->L)) - Sum42;
+  Sum42 = Sum42 / (double) cur_mp->L;
+  BigGamma = cur_mp->gamma - (0.5 * (log ((double)cur_mp->L) / log (2.0))) - Sum42;
+  //BigGamma=cur_mp->gamma - (0.5 * log((double)cur_mp->L)) - Sum42;
 
   // Part 3
   for (l = 1; l <= cur_mp->L; l++)
     {
-      c1 = ((float) 0.65 * ((float) 1 - deltal[l]) * prev_mp->log2Ml[intkl[l]]);
-      c2 = ((float) 0.65 * deltal[l] * prev_mp->log2Ml[intkl[l] + 1]);
+      c1 = (0.65 * (1.0 - deltal[l]) * prev_mp->log2Ml[intkl[l]]);
+      c2 = (0.65 * deltal[l] * prev_mp->log2Ml[intkl[l] + 1]);
       cur_mp->log2Ml[l] = Tl[l] + c1 + c2 - Sum43 + BigGamma;
       // inverse log to generate spectral amplitudes
       if (cur_mp->Vl[l] == 1)
         {
-          cur_mp->Ml[l] = exp ((float) 0.693 * cur_mp->log2Ml[l]);
+          cur_mp->Ml[l] = exp (0.693 * cur_mp->log2Ml[l]);
         }
       else
         {
-          cur_mp->Ml[l] = unvc * exp ((float) 0.693 * cur_mp->log2Ml[l]);
+          cur_mp->Ml[l] = unvc * exp (0.693 * cur_mp->log2Ml[l]);
         }
 #ifdef AMBE_DEBUG
       printf ("flokl[%i]: %f, intkl[%i]: %i ", l, flokl[l], l, intkl[l]);
@@ -587,7 +587,7 @@ mbe_demodulateAmbe3600x2450Data (char ambe_fr[4][24])
 }
 
 void
-mbe_processAmbe2450Dataf (double *aout_buf, int *errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality)
+mbe_processAmbe2450Dataf (double *aout_buf, int* errs, int *errs2, char *err_str, char ambe_d[49], mbe_parms * cur_mp, mbe_parms * prev_mp, mbe_parms * prev_mp_enhanced, int uvquality)
 {
 
   int i, bad;

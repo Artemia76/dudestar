@@ -113,7 +113,7 @@ void imbe_vocoder::sa_encode(IMBE_PARAM *imbe_param)
 
 		}
 		if (d_gain_adjust)
-			*vec32_ptr = L_sub(*vec32_ptr, (Word32)(d_gain_adjust * float(1<<22)));
+            *vec32_ptr = L_sub(*vec32_ptr, (Word32)(d_gain_adjust * double(1<<22)));
 		vec32_ptr++;
 
 		k_acc += k_coef;

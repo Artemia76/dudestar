@@ -56,7 +56,7 @@ const double Ws[321] = {
  * Speech Synthesis Window, 48k version
  */
 /*
-const float Ws48k[1926] = {
+const double Ws48k[1926] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
