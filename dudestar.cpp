@@ -167,6 +167,8 @@ void DudeStar::init_gui()
     ui->sliderMic->setRange(0, 100);
     ui->sliderMic->setValue(100);
     ui->pushTX->setDisabled(true);
+    connect(ui->pushTX, SIGNAL(pressed()), this, SIGNAL(on_start_tx()));
+    connect(ui->pushTX, SIGNAL(released()), this, SIGNAL(on_stop_tx()));
     m17rates = new QButtonGroup();
     m17rates->addButton(ui->radioButtonM173200, 1);
     m17rates->addButton(ui->radioButtonM171600, 0);
@@ -1580,8 +1582,8 @@ void DudeStar::process_connect()
             ui->checkPrivate->isChecked() ? emit ui->checkPrivate->stateChanged(2) : emit ui->checkPrivate->stateChanged(0);
             connect(ui->checkSWRX, SIGNAL(stateChanged(int)), m_dmr, SLOT(swrx_state_changed(int)));
             connect(ui->checkSWTX, SIGNAL(stateChanged(int)), m_dmr, SLOT(swtx_state_changed(int)));
-            connect(ui->pushTX, SIGNAL(pressed()), m_dmr, SLOT(start_tx()));
-            connect(ui->pushTX, SIGNAL(released()), m_dmr, SLOT(stop_tx()));
+            connect(this, SIGNAL(on_start_tx()), m_dmr, SLOT(start_tx()),Qt::QueuedConnection);
+            connect(this, SIGNAL(on_stop_tx()), m_dmr, SLOT(stop_tx()),Qt::QueuedConnection);
             connect(this, SIGNAL(out_audio_vol_changed(qreal)), m_dmr, SLOT(out_audio_vol_changed(qreal)));
             connect(this, SIGNAL(in_audio_vol_changed(qreal)), m_dmr, SLOT(in_audio_vol_changed(qreal)));
             connect(this, SIGNAL(codec_gain_changed(qreal)), m_dmr, SLOT(decoder_gain_changed(qreal)));
@@ -2144,4 +2146,58 @@ void DudeStar::update_xrf_data()
 
 void DudeStar::handleStateChanged(QAudio::State)
 {
+}
+
+void DudeStar::keyPressEvent(QKeyEvent* event)
+{
+    if ((event->key() == Qt::Key_Alt))
+    {
+#ifdef QT_DEBUG
+        qDebug()<< "keyPressEvent occured";
+#endif
+        if (ui->pushTX->isEnabled())
+        {
+            ui->pushTX->setDown(true);
+            emit(on_start_tx());
+        }
+        event->accept();
+
+    }
+}
+
+void DudeStar::keyReleaseEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_Alt)
+    {
+#ifdef QT_DEBUG
+        qDebug()<< "keyReleaseEvent occured";
+#endif
+         ui->pushTX->setDown(false);
+         emit(on_stop_tx());
+         event->accept();
+    }
+}
+
+bool DudeStar::event(QEvent * event) // overloading event(QEvent*) method of QMainWindow
+{
+    switch(event->type())
+    {
+        case QEvent::KeyPress:
+            keyReleaseEvent((QKeyEvent*) event);
+            break;
+        case QEvent::KeyRelease:
+            keyReleaseEvent((QKeyEvent*) event);
+            break;
+        case QEvent::WindowActivate :
+            // gained focus
+            break ;
+
+        case QEvent::WindowDeactivate :
+            // lost focus
+            ui->pushTX->setDown(false);
+            emit(on_stop_tx());
+            event->accept();
+            break ;
+    } ;
+    return QMainWindow::event(event) ;
 }

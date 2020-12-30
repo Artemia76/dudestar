@@ -141,6 +141,9 @@
         </item>
         <item row="0" column="3" colspan="2">
          <widget class="QPushButton" name="pushConnect">
+          <property name="focusPolicy">
+           <enum>Qt::StrongFocus</enum>
+          </property>
           <property name="text">
            <string>Connect</string>
           </property>
@@ -295,6 +298,9 @@
         </item>
         <item row="18" column="1" colspan="4">
          <widget class="QPushButton" name="pushTX">
+          <property name="toolTip">
+           <string extracomment="Push it to talk or Alt key"/>
+          </property>
           <property name="text">
            <string>TX</string>
           </property>
