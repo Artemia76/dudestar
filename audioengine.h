@@ -53,11 +53,12 @@ private:
 	QString m_inputdevice;
 	QAudioOutput *m_out;
 	QAudioInput *m_in;
+    QAudioFormat m_format_out;
+    QAudioFormat m_format_in;
 	QIODevice *m_outdev;
 	QIODevice *m_indev;
-	QQueue<int16_t> m_audioinq;
+    QQueue<qint16> m_audioinq;
 	uint16_t m_maxlevel;
-    uint8_t m_srm; // sample rate multiplier for macOS HACK
 
 private slots:
 	void input_data_received();

@@ -3,13 +3,8 @@ QT       += core gui network serialport multimedia
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 #Extract Git version from Tag
-win32 {
-    GIT_VERSION=$$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --tags)
-    GIT_COMMIT=$$system(git rev-parse --short HEAD)
-} else {
-    GIT_VERSION='$(shell cd $$PWD;git --work-tree $$PWD describe --abbrev=0 --tags)'
-    GIT_COMMIT='$(shell cd $$PWD;git rev-parse --short HEAD)'
-}
+GIT_VERSION=$$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --tags)
+GIT_COMMIT=$$system(git rev-parse --short HEAD)
 
 isEmpty(GIT_VERSION) {
 # Application Version
@@ -59,6 +54,10 @@ isEmpty(DEPLOY_BASE) : DEPLOY_BASE=$$OUT_PWD/deploy
 
 unix:!macx {
     isEmpty(GIT_PATH) : GIT_PATH=git
+
+    #find KFC DSP library
+    LIBS += -lsamplerate
+
 }
 
 win32 {

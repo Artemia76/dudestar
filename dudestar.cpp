@@ -248,7 +248,7 @@ void DudeStar::init_gui()
                               "PARTICULAR PURPOSE. See the GNU General Public License for "
                               "more details.\n\nYou should have received a copy of the GNU "
                               "General Public License along with this program. "
-                              "If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a></p>").arg(APP_NAME).arg(APP_MAJOR).arg(APP_MINOR).arg(APP_BUILD));
+                              "If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a></p>").arg(APP_NAME).arg(APP_MAJOR).arg((int)APP_MINOR).arg(QString(APP_BUILD)));
     m_uitimer = new QTimer();
     connect(m_uitimer, SIGNAL(timeout()), this, SLOT(update_ui()));
     m_uitimer->start(10);
