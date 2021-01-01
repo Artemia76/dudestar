@@ -3,13 +3,8 @@ QT       += core gui network serialport multimedia
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 #Extract Git version from Tag
-win32 {
-    GIT_VERSION=$$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --tags)
-    GIT_COMMIT=$$system(git rev-parse --short HEAD)
-} else {
-    GIT_VERSION='$(shell cd $$PWD;git --work-tree $$PWD describe --abbrev=0 --tags)'
-    GIT_COMMIT='$(shell cd $$PWD;git rev-parse --short HEAD)'
-}
+  GIT_VERSION=$$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --tags)
+  GIT_COMMIT=$$system(git rev-parse --short HEAD)
 
 isEmpty(GIT_VERSION) {
 # Application Version
