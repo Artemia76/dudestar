@@ -29,6 +29,9 @@
 #include <QSerialPortInfo>
 #include <time.h>
 #include "tools/version.h"
+#ifdef Q_OS_RPI
+    #include <pigpio.h>
+#endif
 
 #define ENDLINE "\n"
 
@@ -249,6 +252,20 @@ void DudeStar::init_gui()
                               "more details.\n\nYou should have received a copy of the GNU "
                               "General Public License along with this program. "
                               "If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a></p>").arg(APP_NAME).arg(APP_MAJOR).arg(APP_MINOR).arg(APP_BUILD));
+#ifdef Q_OS_RPI
+    if (gpioInitialise() < 0)
+        {
+            qDebug() << "pigpio initialisation failed";
+        }
+        else
+        {
+            qDebug() << "pigpio initialised ok";
+        }
+
+        gpioSetMode(5, PI_INPUT);
+        gpioSetPullUpDown(5, PI_PUD_OFF);
+        gpioSetAlertFuncEx(5, _callbackGPIOExt, (void *)this);
+#endif
     m_uitimer = new QTimer();
     connect(m_uitimer, SIGNAL(timeout()), this, SLOT(update_ui()));
     m_uitimer->start(10);
@@ -2201,3 +2218,31 @@ bool DudeStar::event(QEvent * event) // overloading event(QEvent*) method of QMa
     } ;
     return QMainWindow::event(event) ;
 }
+
+#ifdef Q_OS_RPI
+
+void DudeStar::_callbackGPIO(int gpio,int level, uint32_t tick)
+{
+    qWarning()<< tr("GPIO Change  occured : Pin ") << QString::number(gpio) << tr("=") << QString::number(level) << tr(" at ") << QString::number(tick);
+    if (level == 1)
+    {
+        if (ui->pushTX->isEnabled())
+        {
+            ui->pushTX->setDown(true);
+            emit(on_start_tx());
+        }
+    }
+    else
+    {
+        ui->pushTX->setDown(false);
+        emit(on_stop_tx());
+    }
+
+}
+
+void DudeStar::_callbackGPIOExt(int gpio,int level, uint32_t tick, void* user)
+{
+    DudeStar* mySelf= (DudeStar *) user;
+    mySelf->_callbackGPIO(gpio, level, tick);
+}
+#endif

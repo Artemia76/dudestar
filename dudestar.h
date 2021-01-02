@@ -61,6 +61,10 @@ signals:
     void send_dtmf(QByteArray);
 private:
     void init_gui();
+#ifdef Q_OS_RPI
+    void _callbackGPIO(int gpio,int level, uint32_t tick);
+static void _callbackGPIOExt(int gpio,int level, uint32_t tick, void* user);
+#endif
     Ui::DudeStar *ui;
     LevelMeter *m_levelmeter;
     QLabel *m_labeldb;

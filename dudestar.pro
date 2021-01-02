@@ -54,6 +54,14 @@ isEmpty(DEPLOY_BASE) : DEPLOY_BASE=$$OUT_PWD/deploy
 
 unix:!macx {
     isEmpty(GIT_PATH) : GIT_PATH=git
+    # =======================================================================
+    # Detect Raspberry platform
+    RASPBERRY = $$system(bash $$PWD/onrpi)
+    !isEmpty(RASPBERRY) {
+        message(Raspberry Hardware Detected)
+        DEFINES+= Q_OS_RPI
+        LIBS += -lpigpio
+    }
 }
 
 win32 {
@@ -426,5 +434,6 @@ deploy.depends = all
 QMAKE_EXTRA_TARGETS += deploy copydata all
 
 DISTFILES += \
-    gpl-2.0.md
+    gpl-2.0.md \
+    onrpi
 
