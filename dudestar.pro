@@ -173,6 +173,7 @@ SOURCES += \
         p25codec.cpp \
         refcodec.cpp \
         serialambe.cpp \
+        tools/clogger.cpp \
         xrfcodec.cpp \
         ysfcodec.cpp
 
@@ -250,6 +251,9 @@ HEADERS += \
         p25codec.h \
         refcodec.h \
         serialambe.h \
+        tools/call_once.h \
+        tools/clogger.h \
+        tools/singleton.h \
         tools/version.h \
         vocoder_tables.h \
         xrfcodec.h \

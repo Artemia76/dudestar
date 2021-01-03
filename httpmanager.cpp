@@ -21,11 +21,8 @@ HttpManager::HttpManager(QString f) : QObject(nullptr)
 {
     m_qnam = new QNetworkAccessManager(this);
     QObject::connect(m_qnam, SIGNAL(finished(QNetworkReply*)), this, SLOT(http_finished(QNetworkReply*)));
-    m_config_path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    m_config_path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)+"/" ;
     m_filename = f;
-#ifndef Q_OS_WIN
-    m_config_path += "/dudestar";
-#endif
 }
 
 void HttpManager::process()

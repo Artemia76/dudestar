@@ -22,6 +22,7 @@
 #include <QButtonGroup>
 #include <QLabel>
 #include <QKeyEvent>
+#include <QSettings>
 #ifdef USE_FLITE
 #include <flite/flite.h>
 #endif
@@ -38,6 +39,7 @@
 #include "nxdncodec.h"
 #include "m17codec.h"
 #include "iaxcodec.h"
+#include "tools/clogger.h"
 
 namespace Ui {
 class DudeStar;
@@ -90,7 +92,6 @@ static void _callbackGPIOExt(int gpio,int level, uint32_t tick, void* user);
     bool m_update_host_files;
     int port;
     QHostAddress address;
-    QString config_path;
     QString callsign;
     //QString serial;
     QString dmr_password;
@@ -103,6 +104,7 @@ static void _callbackGPIOExt(int gpio,int level, uint32_t tick, void* user);
     QString saved_nxdnhost;
     QString saved_m17host;
     QString saved_iaxhost;
+    QString config_path;
     char module;
     uint32_t dmrid;
     uint32_t dmr_srcid;
@@ -140,11 +142,15 @@ static void _callbackGPIOExt(int gpio,int level, uint32_t tick, void* user);
     QButtonGroup *tts_voices;
     uint16_t m_outlevel;
     uint64_t m_rxcnt;
+    CLogger* m_log;
+    QSettings m_settings;
+    int m_maxLine;
 
 protected:
     void    keyPressEvent(QKeyEvent* event);
     void    keyReleaseEvent(QKeyEvent* event);
     bool    event(QEvent * event);
+    void    closeEvent(QCloseEvent* pEvent);
 
 private slots:
     void process_connect();
@@ -193,6 +199,16 @@ private slots:
     void update_ui();
     void update_output_level(unsigned short l){ m_outlevel = l;}
     void process_dtmf();
+    void onLog(const QString& pMessage,QColor pColor, CL_DEBUG_LEVEL pLevel);
+    void clearLog();
+    void saveLog();
+    void on_pteLogger_customContextMenuRequested(const QPoint &pos);
+
+    void on_rb_filterNone_toggled(bool checked);
+
+    void on_rb_filterNormal_toggled(bool checked);
+
+    void on_rb_filterVerbose_toggled(bool checked);
 
 signals:
     void on_start_tx();

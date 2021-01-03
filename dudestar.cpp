@@ -16,6 +16,15 @@
 */
 
 #include "dudestar.h"
+
+#include <QMenu>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QSerialPortInfo>
+#include <QStandardPaths>
+#include <iostream>
+#include <time.h>
+
 #include "audioengine.h"
 #include "serialambe.h"
 #include "ui_dudestar.h"
@@ -23,17 +32,11 @@
 #include "crs129.h"
 #include "cbptc19696.h"
 #include "cgolay2087.h"
-#include <iostream>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QSerialPortInfo>
-#include <time.h>
 #include "tools/version.h"
+
 #ifdef Q_OS_RPI
     #include <pigpio.h>
 #endif
-
-#define ENDLINE "\n"
 
 #define LOBYTE(w)			((uint8_t)(uint16_t)(w & 0x00FF))
 #define HIBYTE(w)			((uint8_t)((((uint16_t)(w)) >> 8) & 0xFF))
@@ -55,10 +58,7 @@ DudeStar::DudeStar(QWidget *parent) :
     m_rxcnt(0)
 {
     muted = false;
-    config_path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-#ifndef Q_OS_WIN
-    config_path += "/dudestar";
-#endif
+    config_path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)+"/";
     ui->setupUi(this);
     init_gui();
     connect_status = DISCONNECTED;
@@ -70,50 +70,22 @@ DudeStar::DudeStar(QWidget *parent) :
 
 DudeStar::~DudeStar()
 {
-    QFile f(config_path + "/settings.conf");
-    f.open(QIODevice::WriteOnly);
-    QTextStream stream(&f);
-    stream << "PLAYBACK:" << ui->comboPlayback->currentText() << ENDLINE;
-    stream << "CAPTURE:" << ui->comboCapture->currentText() << ENDLINE;
-    stream << "MODE:" << ui->comboMode->currentText() << ENDLINE;
-    stream << "REFHOST:" << saved_refhost << ENDLINE;
-    stream << "DCSHOST:" << saved_dcshost << ENDLINE;
-    stream << "XRFHOST:" << saved_xrfhost << ENDLINE;
-    stream << "YSFHOST:" << saved_ysfhost << ENDLINE;
-    stream << "DMRHOST:" << saved_dmrhost << ENDLINE;
-    stream << "P25HOST:" << saved_p25host << ENDLINE;
-    stream << "NXDNHOST:" << saved_nxdnhost << ENDLINE;
-    stream << "M17HOST:" << saved_m17host << ENDLINE;
-    stream << "MODULE:" << ui->comboModule->currentText() << ENDLINE;
-    stream << "CALLSIGN:" << ui->editCallsign->text() << ENDLINE;
-    stream << "DMRID:" << ui->editDMRID->text() << ENDLINE;
-    stream << "ESSID:" << ui->comboESSID->currentText() << ENDLINE;
-    stream << "DMRPASSWORD:" << ui->editPassword->text() << ENDLINE;
-    stream << "DMRTGID:" << ui->editTG->text() << ENDLINE;
-    stream << "DMRLAT:" << ui->editLat->text() << ENDLINE;
-    stream << "DMRLONG:" << ui->editLong->text() << ENDLINE;
-    stream << "DMRLOC:" << ui->editLocation->text() << ENDLINE;
-    stream << "DMRDESC:" << ui->editDesc->text() << ENDLINE;
-    stream << "DMROPTS:" << ui->editDMROptions->text() << ENDLINE;
-    stream << "MYCALL:" << ui->editMYCALL->text().simplified() << ENDLINE;
-    stream << "URCALL:" << ui->editURCALL->text().simplified() << ENDLINE;
-    stream << "RPTR1:" << ui->editRPTR1->text().simplified() << ENDLINE;
-    stream << "RPTR2:" << ui->editRPTR2->text().simplified() << ENDLINE;
-    stream << "USRTXT:" << ui->editUserTxt->text() << ENDLINE;
-    stream << "IAXUSER:" << ui->editIAXUsername->text() << ENDLINE;
-    stream << "IAXPASS:" << ui->editIAXPassword->text() << ENDLINE;
-    stream << "IAXNODE:" << ui->editIAXNode->text() << ENDLINE;
-    stream << "IAXHOST:" << ui->editIAXHost->text() << ENDLINE;
-    stream << "IAXPORT:" << ui->editIAXPort->text() << ENDLINE;
-    stream << "MICGAIN:" << ui->sliderMic->value() << ENDLINE;
-    stream << "VOLGAIN:" << ui->sliderVolume->value() << ENDLINE;
-    stream << "CODECGAIN:" << ui->sliderCodecGain->value() << ENDLINE;
-    f.close();
     delete ui;
 }
 
 void DudeStar::init_gui()
 {
+    // Specify custom handler for contextual menu
+    ui->pteLogger->setContextMenuPolicy(Qt::CustomContextMenu);
+    // Init window position and size
+    m_settings.beginGroup("MainWindow");
+    restoreGeometry(m_settings.value("Geometry").toByteArray());
+    restoreState(m_settings.value("State").toByteArray());
+    m_settings.endGroup();
+    m_settings.beginGroup("log");
+    m_maxLine = m_settings.value("MaxLine",200).toInt();
+    m_settings.endGroup();
+
     QPalette palette;
     palette.setColor(QPalette::Window, QColor(53, 53, 53));
     palette.setColor(QPalette::WindowText, Qt::white);
@@ -132,6 +104,31 @@ void DudeStar::init_gui()
     palette.setColor(QPalette::Highlight, QColor(42, 130, 218));
     palette.setColor(QPalette::HighlightedText, Qt::black);
     qApp->setPalette(palette);
+
+    m_log = CLogger::instance();
+
+    switch (m_log->DebugLevel)
+    {
+        case LEVEL_NONE:
+        {
+            ui->rb_filterNone->setChecked(true);
+            break;
+        }
+        case LEVEL_NORMAL:
+        {
+            ui->rb_filterNormal->setChecked(true);
+            break;
+        }
+        case LEVEL_VERBOSE:
+        {
+            ui->rb_filterVerbose->setChecked(true);
+            break;
+        }
+    }
+    connect(m_log, SIGNAL(fireLog(QString,QColor,CL_DEBUG_LEVEL)),this,SLOT(onLog(QString,QColor,CL_DEBUG_LEVEL)),Qt::QueuedConnection);
+    ui->pteLogger->setMaximumBlockCount(m_maxLine);
+    m_log->log(tr("Welcome to ") + APP_NAME ,Qt::gray);
+
     m_levelmeter = new LevelMeter(this);
     m_labeldb = new QLabel();
     m_labeldb->setMaximumWidth(40);
@@ -661,17 +658,13 @@ void DudeStar::process_mode_change(const QString &m)
 
 void DudeStar::tts_changed(int b)
 {
-#ifdef QT_DEBUG
-    qDebug() << "tts_changed() called";
-#endif
+    m_log->log("tts_changed() called",Qt::magenta,LEVEL_NORMAL);
     emit input_source_changed(b, ui->editTTSTXT->text());
 }
 
 void DudeStar::tgid_text_changed(QString s)
 {
-#ifdef QT_DEBUG
-    qDebug() << "dmrid_text_changed() called s == " << s;
-#endif
+    m_log->log("dmrid_text_changed() called s == " + s,Qt::magenta,LEVEL_NORMAL);
     emit dmr_tgid_changed(s.toUInt());
 }
 
@@ -714,10 +707,10 @@ void DudeStar::process_dtmf()
 void DudeStar::process_ref_hosts()
 {
     QMap<QString, QString> hostmap;
-    QFileInfo check_file(config_path + "/dplus.txt");
+    QFileInfo check_file(config_path + "dcs.txt");
     if(check_file.exists() && check_file.isFile()){
         ui->comboHost->blockSignals(true);
-        QFile f(config_path + "/dplus.txt");
+        QFile f(config_path + "dplus.txt");
         if(f.open(QIODevice::ReadOnly)){
             ui->comboHost->clear();
             while(!f.atEnd()){
@@ -750,7 +743,7 @@ void DudeStar::process_ref_hosts()
 void DudeStar::process_dcs_hosts()
 {
     QMap<QString, QString> hostmap;
-    QFileInfo check_file(config_path + "/dcs.txt");
+    QFileInfo check_file(config_path + "dcs.txt");
     if(check_file.exists() && check_file.isFile()){
         ui->comboHost->blockSignals(true);
         QFile f(config_path + "/dcs.txt");
@@ -779,14 +772,14 @@ void DudeStar::process_dcs_hosts()
         ui->comboHost->blockSignals(false);
     }
     else{
-        download_file("/dcs.txt");
+        download_file("dcs.txt");
     }
 }
 
 void DudeStar::process_xrf_hosts()
 {
     QMap<QString, QString> hostmap;
-    QFileInfo check_file(config_path + "/dextra.txt");
+    QFileInfo check_file(config_path + "dextra.txt");
     if(check_file.exists() && check_file.isFile()){
         ui->comboHost->blockSignals(true);
         QFile f(config_path + "/dextra.txt");
@@ -815,17 +808,17 @@ void DudeStar::process_xrf_hosts()
         ui->comboHost->blockSignals(false);
     }
     else{
-        download_file("/dextra.txt");
+        download_file("dextra.txt");
     }
 }
 
 void DudeStar::process_ysf_hosts()
 {
     QMap<QString, QString> hostmap;
-    QFileInfo check_file(config_path + "/YSFHosts.txt");
+    QFileInfo check_file(config_path + "YSFHosts.txt");
     if(check_file.exists() && check_file.isFile()){
         ui->comboHost->blockSignals(true);
-        QFile f(config_path + "/YSFHosts.txt");
+        QFile f(config_path + "YSFHosts.txt");
         if(f.open(QIODevice::ReadOnly)){
             ui->comboHost->clear();
             while(!f.atEnd()){
@@ -854,17 +847,17 @@ void DudeStar::process_ysf_hosts()
         process_fcs_rooms();
     }
     else{
-        download_file("/YSFHosts.txt");
+        download_file("YSFHosts.txt");
     }
 }
 
 void DudeStar::process_fcs_rooms()
 {
     QMap<QString, QString> hostmap;
-    QFileInfo check_file(config_path + "/FCSHosts.txt");
+    QFileInfo check_file(config_path + "FCSHosts.txt");
     if(check_file.exists() && check_file.isFile()){
         ui->comboHost->blockSignals(true);
-        QFile f(config_path + "/FCSHosts.txt");
+        QFile f(config_path + "FCSHosts.txt");
         if(f.open(QIODevice::ReadOnly)){
             //ui->comboHost->clear();
             while(!f.atEnd()){
@@ -892,17 +885,17 @@ void DudeStar::process_fcs_rooms()
         ui->comboHost->blockSignals(false);
     }
     else{
-        download_file("/FCSHosts.txt");
+        download_file("FCSHosts.txt");
     }
 }
 
 void DudeStar::process_dmr_hosts()
 {
     QMap<QString, QString> hostmap;
-    QFileInfo check_file(config_path + "/DMRHosts.txt");
+    QFileInfo check_file(config_path + "DMRHosts.txt");
     if(check_file.exists() && check_file.isFile()){
         ui->comboHost->blockSignals(true);
-        QFile f(config_path + "/DMRHosts.txt");
+        QFile f(config_path + "DMRHosts.txt");
         if(f.open(QIODevice::ReadOnly)){
             ui->comboHost->clear();
             while(!f.atEnd()){
@@ -935,17 +928,17 @@ void DudeStar::process_dmr_hosts()
         ui->comboHost->blockSignals(false);
     }
     else{
-        download_file("/DMRHosts.txt");
+        download_file("DMRHosts.txt");
     }
 }
 
 void DudeStar::process_p25_hosts()
 {
     QMap<QString, QString> hostmap;
-    QFileInfo check_file(config_path + "/P25Hosts.txt");
+    QFileInfo check_file(config_path + "P25Hosts.txt");
     if(check_file.exists() && check_file.isFile()){
         ui->comboHost->blockSignals(true);
-        QFile f(config_path + "/P25Hosts.txt");
+        QFile f(config_path + "P25Hosts.txt");
         if(f.open(QIODevice::ReadOnly)){
             ui->comboHost->clear();
             while(!f.atEnd()){
@@ -973,17 +966,17 @@ void DudeStar::process_p25_hosts()
         ui->comboHost->blockSignals(false);
     }
     else{
-        download_file("/P25Hosts.txt");
+        download_file("P25Hosts.txt");
     }
 }
 
 void DudeStar::process_nxdn_hosts()
 {
     QMap<QString, QString> hostmap;
-    QFileInfo check_file(config_path + "/NXDNHosts.txt");
+    QFileInfo check_file(config_path + "NXDNHosts.txt");
     if(check_file.exists() && check_file.isFile()){
         ui->comboHost->blockSignals(true);
-        QFile f(config_path + "/NXDNHosts.txt");
+        QFile f(config_path + "NXDNHosts.txt");
         if(f.open(QIODevice::ReadOnly)){
             ui->comboHost->clear();
             while(!f.atEnd()){
@@ -1010,17 +1003,17 @@ void DudeStar::process_nxdn_hosts()
         ui->comboHost->blockSignals(false);
     }
     else{
-        download_file("/NXDNHosts.txt");
+        download_file("NXDNHosts.txt");
     }
 }
 
 void DudeStar::process_m17_hosts()
 {
     QMap<QString, QString> hostmap;
-    QFileInfo check_file(config_path + "/M17Hosts.txt");
+    QFileInfo check_file(config_path + "M17Hosts.txt");
     if(check_file.exists() && check_file.isFile()){
         ui->comboHost->blockSignals(true);
-        QFile f(config_path + "/M17Hosts.txt");
+        QFile f(config_path + "M17Hosts.txt");
         if(f.open(QIODevice::ReadOnly)){
             ui->comboHost->clear();
             while(!f.atEnd()){
@@ -1046,7 +1039,7 @@ void DudeStar::process_m17_hosts()
         ui->comboHost->blockSignals(false);
     }
     else{
-        download_file("/M17Hosts.txt");
+        download_file("M17Hosts.txt");
     }
 }
 
@@ -1062,62 +1055,62 @@ void DudeStar::check_host_files()
         QDir().mkdir(config_path);
     }
 
-    QFileInfo check_file(config_path + "/dplus.txt");
+    QFileInfo check_file(config_path + "dplus.txt");
     if( (!check_file.exists() && !(check_file.isFile())) || m_update_host_files ){
-        download_file("/dplus.txt");
+        download_file("dplus.txt");
     }
 
-    check_file.setFile(config_path + "/dextra.txt");
+    check_file.setFile(config_path + "dextra.txt");
     if( (!check_file.exists() && !check_file.isFile() ) || m_update_host_files  ){
-        download_file("/dextra.txt");
+        download_file("dextra.txt");
     }
 
-    check_file.setFile(config_path + "/dcs.txt");
+    check_file.setFile(config_path + "dcs.txt");
     if( (!check_file.exists() && !check_file.isFile()) || m_update_host_files ){
-        download_file( "/dcs.txt");
+        download_file("dcs.txt");
     }
 
-    check_file.setFile(config_path + "/YSFHosts.txt");
+    check_file.setFile(config_path + "YSFHosts.txt");
     if( (!check_file.exists() && !check_file.isFile()) || m_update_host_files ){
-        download_file("/YSFHosts.txt");
+        download_file("YSFHosts.txt");
     }
 
-    check_file.setFile(config_path + "/FCSHosts.txt");
+    check_file.setFile(config_path + "FCSHosts.txt");
     if( (!check_file.exists() && !check_file.isFile()) || m_update_host_files ){
-        download_file("/FCSHosts.txt");
+        download_file("FCSHosts.txt");
     }
 
-    check_file.setFile(config_path + "/DMRHosts.txt");
+    check_file.setFile(config_path + "DMRHosts.txt");
     if( (!check_file.exists() && !check_file.isFile()) || m_update_host_files ){
-        download_file("/DMRHosts.txt");
+        download_file("DMRHosts.txt");
     }
 
-    check_file.setFile(config_path + "/P25Hosts.txt");
+    check_file.setFile(config_path + "P25Hosts.txt");
     if( (!check_file.exists() && !check_file.isFile()) || m_update_host_files ){
-        download_file("/P25Hosts.txt");
+        download_file("P25Hosts.txt");
     }
 
-    check_file.setFile(config_path + "/NXDNHosts.txt");
+    check_file.setFile(config_path + "NXDNHosts.txt");
     if((!check_file.exists() && !check_file.isFile()) || m_update_host_files ){
-        download_file("/NXDNHosts.txt");
+        download_file("NXDNHosts.txt");
     }
 
-    check_file.setFile(config_path + "/M17Hosts.txt");
+    check_file.setFile(config_path + "M17Hosts.txt");
     if( (!check_file.exists() && !check_file.isFile()) || m_update_host_files ){
-        download_file("/M17Hosts.txt");
+        download_file("M17Hosts.txt");
     }
 
-    check_file.setFile(config_path + "/DMRIDs.dat");
+    check_file.setFile(config_path + "DMRIDs.dat");
     if(!check_file.exists() && !check_file.isFile()){
-        download_file("/DMRIDs.dat");
+        download_file("DMRIDs.dat");
     }
     else {
         process_dmr_ids();
     }
 
-    check_file.setFile(config_path + "/NXDN.csv");
+    check_file.setFile(config_path + "NXDN.csv");
     if(!check_file.exists() && !check_file.isFile()){
-        download_file("/NXDN.csv");
+        download_file("NXDN.csv");
     }
     else{
         process_nxdn_ids();
@@ -1128,7 +1121,7 @@ void DudeStar::check_host_files()
 
 void DudeStar::process_dmr_ids()
 {
-    QFileInfo check_file(config_path + "/DMRIDs.dat");
+    QFileInfo check_file(config_path + "DMRIDs.dat");
     if(check_file.exists() && check_file.isFile()){
         QFile f(config_path + "/DMRIDs.dat");
         if(f.open(QIODevice::ReadOnly)){
@@ -1145,15 +1138,15 @@ void DudeStar::process_dmr_ids()
         f.close();
     }
     else{
-        download_file("/DMRIDs.dat");
+        download_file("DMRIDs.dat");
     }
 }
 
 void DudeStar::update_dmr_ids()
 {
-    QFileInfo check_file(config_path + "/DMRIDs.dat");
+    QFileInfo check_file(config_path + "DMRIDs.dat");
     if(check_file.exists() && check_file.isFile()){
-        QFile f(config_path + "/DMRIDs.dat");
+        QFile f(config_path + "DMRIDs.dat");
         f.remove();
     }
     process_dmr_ids();
@@ -1161,9 +1154,9 @@ void DudeStar::update_dmr_ids()
 
 void DudeStar::process_nxdn_ids()
 {
-    QFileInfo check_file(config_path + "/NXDN.csv");
+    QFileInfo check_file(config_path + "NXDN.csv");
     if(check_file.exists() && check_file.isFile()){
-        QFile f(config_path + "/NXDN.csv");
+        QFile f(config_path + "NXDN.csv");
         if(f.open(QIODevice::ReadOnly)){
             while(!f.atEnd()){
                 QString l = f.readLine();
@@ -1180,212 +1173,18 @@ void DudeStar::process_nxdn_ids()
         f.close();
     }
     else{
-        download_file("/NXDN.csv");
+        download_file("NXDN.csv");
     }
 }
 
 void DudeStar::update_nxdn_ids()
 {
-    QFileInfo check_file(config_path + "/NXDN.csv");
+    QFileInfo check_file(config_path + "NXDN.csv");
     if(check_file.exists() && check_file.isFile()){
         QFile f(config_path + "/NXDN.csv");
         f.remove();
     }
     process_dmr_ids();
-}
-
-void DudeStar::process_settings()
-{
-    QFileInfo check_file(config_path + "/settings.conf");
-    if(check_file.exists() && check_file.isFile()){
-        QFile f(config_path + "/settings.conf");
-        if(f.open(QIODevice::ReadOnly)){
-            while(!f.atEnd()){
-                QString s = f.readLine();
-                s.remove('\n');
-                QStringList sl = s.split(':');
-                if(sl.at(0) == "PLAYBACK"){
-                    ui->comboPlayback->setCurrentText(sl.at(1));
-                }
-                if(sl.at(0) == "CAPTURE"){
-                    ui->comboCapture->setCurrentText(sl.at(1));
-                }
-                if(sl.at(0) == "MODE"){
-                    ui->comboMode->blockSignals(true);
-                    int i = ui->comboMode->findText(sl.at(1).simplified());
-                    ui->comboMode->setCurrentIndex(i);
-                    process_mode_change(sl.at(1).simplified());
-
-                    if(i == 0){
-                        process_ref_hosts();
-                    }
-                    else if(i == 1){
-                        process_dcs_hosts();
-                    }
-                    else if(i == 2){
-                        process_xrf_hosts();
-                    }
-                    else if(i == 3){
-                        process_ysf_hosts();
-                    }
-                    else if(i == 4){
-                        process_dmr_hosts();
-                    }
-                    else if(i == 5){
-                        process_p25_hosts();
-                    }
-                    else if(i == 6){
-                        process_nxdn_hosts();
-                    }
-                    else if(i == 7){
-                        process_m17_hosts();
-                    }
-                }
-                ui->comboMode->blockSignals(false);
-                ui->comboHost->blockSignals(true);
-                if(sl.at(0) == "REFHOST"){
-                    saved_refhost = sl.at(1).simplified();
-                    if(ui->comboMode->currentText().simplified() == "REF"){
-                        int i = ui->comboHost->findText(saved_refhost);
-                        ui->comboHost->setCurrentIndex(i);
-                    }
-                }
-                if(sl.at(0) == "DCSHOST"){
-                    saved_dcshost = sl.at(1).simplified();
-                    if(ui->comboMode->currentText().simplified() == "DCS"){
-                        int i = ui->comboHost->findText(saved_dcshost);
-                        ui->comboHost->setCurrentIndex(i);
-                    }
-                }
-                if(sl.at(0) == "XRFHOST"){
-                    saved_xrfhost = sl.at(1).simplified();
-                    if(ui->comboMode->currentText().simplified() == "XRF"){
-                        int i = ui->comboHost->findText(saved_xrfhost);
-                        ui->comboHost->setCurrentIndex(i);
-                    }
-                }
-                if(sl.at(0) == "YSFHOST"){
-                    saved_ysfhost = sl.at(1).simplified();
-                    if(ui->comboMode->currentText().simplified() == "YSF"){
-                        int i = ui->comboHost->findText(saved_ysfhost);
-                        ui->comboHost->setCurrentIndex(i);
-                    }
-                }
-                if(sl.at(0) == "DMRHOST"){
-                    saved_dmrhost = sl.at(1).simplified();
-                    if(ui->comboMode->currentText().simplified() == "DMR"){
-                        int i = ui->comboHost->findText(saved_dmrhost);
-                        ui->comboHost->setCurrentIndex(i);
-                    }
-                }
-                if(sl.at(0) == "P25HOST"){
-                    saved_p25host = sl.at(1).simplified();
-                    if(ui->comboMode->currentText().simplified() == "P25"){
-                        int i = ui->comboHost->findText(saved_p25host);
-                        ui->comboHost->setCurrentIndex(i);
-                    }
-                }
-                if(sl.at(0) == "NXDNHOST"){
-                    saved_nxdnhost = sl.at(1).simplified();
-                    if(ui->comboMode->currentText().simplified() == "NXDN"){
-                        int i = ui->comboHost->findText(saved_nxdnhost);
-                        ui->comboHost->setCurrentIndex(i);
-                    }
-                }
-                if(sl.at(0) == "M17HOST"){
-                    saved_m17host = sl.at(1).simplified();
-                    if(ui->comboMode->currentText().simplified() == "M17"){
-                        int i = ui->comboHost->findText(saved_m17host);
-                        ui->comboHost->setCurrentIndex(i);
-                    }
-                }
-                if(sl.at(0) == "MODULE"){
-                    ui->comboModule->setCurrentText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "CALLSIGN"){
-                    ui->editCallsign->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "DMRID"){
-                    ui->editDMRID->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "ESSID"){
-#ifdef QT_DEBUG
-                    qDebug() << "ESSID == " << sl.at(1).simplified();
-#endif
-                    if(sl.at(1).simplified() == "None"){
-                        ui->comboESSID->setCurrentIndex(0);
-                    }
-                    else{
-                        ui->comboESSID->setCurrentIndex(sl.at(1).simplified().toInt() + 1);
-                    }
-                }
-                if(sl.at(0) == "DMRPASSWORD"){
-                    ui->editPassword->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "DMRTGID"){
-                    ui->editTG->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "DMRLAT"){
-                    ui->editLat->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "DMRLONG"){
-                    ui->editLong->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "DMRLOC"){
-                    ui->editLocation->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "DMRDESC"){
-                    ui->editDesc->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "DMROPTS"){
-                    ui->editDMROptions->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "MYCALL"){
-                    ui->editMYCALL->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "URCALL"){
-                    ui->editURCALL->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "RPTR1"){
-                    ui->editRPTR1->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "RPTR2"){
-                    ui->editRPTR2->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "USRTXT"){
-                    ui->editUserTxt->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "IAXUSER"){
-                    ui->editIAXUsername->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "IAXPASS"){
-                    ui->editIAXPassword->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "IAXNODE"){
-                    ui->editIAXNode->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "IAXHOST"){
-                    ui->editIAXHost->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "IAXPORT"){
-                    ui->editIAXPort->setText(sl.at(1).simplified());
-                }
-                if(sl.at(0) == "MICGAIN"){
-                    ui->sliderMic->setValue(sl.at(1).toInt());
-                }
-                if(sl.at(0) == "VOLGAIN"){
-                    ui->sliderVolume->setValue(sl.at(1).toInt());
-                }
-                if(sl.at(0) == "CODECGAIN"){
-                    ui->sliderCodecGain->setValue(sl.at(1).toInt());
-                }
-                ui->comboHost->blockSignals(false);
-            }
-        }
-    }
-    else{ //No settings.conf file, first time launch
-        //process_ref_hosts();
-    }
 }
 
 void DudeStar::discover_vocoders()
@@ -2246,3 +2045,346 @@ void DudeStar::_callbackGPIOExt(int gpio,int level, uint32_t tick, void* user)
     mySelf->_callbackGPIO(gpio, level, tick);
 }
 #endif
+
+void DudeStar::process_settings()
+{
+    ui->comboMode->blockSignals(false);
+    ui->comboHost->blockSignals(true);
+
+    m_settings.beginGroup("Audio");
+    ui->comboPlayback->setCurrentText(m_settings.value("PLAYBACK","").toString());
+    ui->comboCapture->setCurrentText(m_settings.value("CAPTURE","").toString());
+    ui->sliderMic->setValue(m_settings.value("MICGAIN",100).toInt());
+    ui->sliderVolume->setValue(m_settings.value("VOLGAIN",100).toInt());
+    ui->sliderCodecGain->setValue(m_settings.value("CODECGAIN",100).toInt());
+    m_settings.endGroup();
+
+    m_settings.beginGroup("MainRadio");
+    QString Mode = m_settings.value("MODE","DMR").toString();
+    int i = ui->comboMode->findText(Mode);
+    ui->comboMode->setCurrentIndex(i);
+    process_mode_change(Mode);
+    switch (i)
+    {
+        case 0:
+        {
+            process_ref_hosts();
+            break;
+        }
+        case 1:
+        {
+            process_dcs_hosts();
+            break;
+        }
+        case 2:
+        {
+            process_xrf_hosts();
+            break;
+        }
+        case 3:
+        {
+            process_ysf_hosts();
+            break;
+        }
+        case 4:
+        {
+            process_dmr_hosts();
+            break;
+        }
+        case 5:
+        {
+            process_p25_hosts();
+            break;
+        }
+        case 6:
+        {
+            process_nxdn_hosts();
+            break;
+        }
+        case 7:
+        {
+            process_m17_hosts();
+            break;
+        }
+    }
+
+    ui->comboModule->setCurrentText(m_settings.value("MODULE","").toString());
+    ui->editCallsign->setText(m_settings.value("CALLSIGN","").toString());
+    m_settings.endGroup();
+
+    m_settings.beginGroup("DStar");
+    ui->editMYCALL->setText(m_settings.value("MYCALL","").toString());
+    ui->editURCALL->setText(m_settings.value("URCALL","").toString());
+    ui->editRPTR1->setText(m_settings.value("RPTR1","").toString());
+    ui->editRPTR2->setText(m_settings.value("RPTR2","").toString());
+    ui->editRPTR2->setText(m_settings.value("USRTXT","").toString());
+    m_settings.endGroup();
+
+    m_settings.beginGroup("DMR");
+    saved_dmrhost = m_settings.value("DMRHOST","").toString();
+    if(ui->comboMode->currentText().simplified() == "DMR")
+    {
+        int i = ui->comboHost->findText(saved_dmrhost);
+        ui->comboHost->setCurrentIndex(i);
+    }
+    ui->editDMRID->setText(m_settings.value("DMRID","").toString());
+    if(m_settings.value("ESSID","").toString() == "None")
+    {
+        ui->comboESSID->setCurrentIndex(0);
+    }
+    else
+    {
+        ui->comboESSID->setCurrentIndex(m_settings.value("ESSID","").toString().toInt() + 1);
+    }
+
+    ui->editPassword->setText(m_settings.value("DMRPASSWORD","").toString());
+    ui->editTG->setText(m_settings.value("DMRTGID","").toString());
+    ui->editLat->setText(m_settings.value("DMRLAT","").toString());
+    ui->editLong->setText(m_settings.value("DMRLONG","").toString());
+    ui->editLocation->setText(m_settings.value("DMRLOC","").toString());
+    ui->editDesc->setText(m_settings.value("DMRDESC","").toString());
+    ui->editDMROptions->setText(m_settings.value("DMROPTS","").toString());
+    m_settings.endGroup();
+
+    m_settings.beginGroup("REF");
+    saved_refhost = m_settings.value("REFHOST","").toString();
+    if(ui->comboMode->currentText().simplified() == "REF")
+    {
+        int i = ui->comboHost->findText(saved_refhost);
+        ui->comboHost->setCurrentIndex(i);
+    }
+    m_settings.endGroup();
+
+    m_settings.beginGroup("DCS");
+    saved_dcshost = m_settings.value("DCSHOST","").toString();
+    if(ui->comboMode->currentText().simplified() == "DCS")
+    {
+        int i = ui->comboHost->findText(saved_dcshost);
+        ui->comboHost->setCurrentIndex(i);
+    }
+    m_settings.endGroup();
+
+    m_settings.beginGroup("XFR");
+    saved_xrfhost = m_settings.value("XRFHOST","").toString();
+    if(ui->comboMode->currentText().simplified() == "XFR")
+    {
+        int i = ui->comboHost->findText(saved_xrfhost);
+        ui->comboHost->setCurrentIndex(i);
+    }
+    m_settings.endGroup();
+
+    m_settings.beginGroup("YSF");
+    saved_ysfhost = m_settings.value("YSFHOST","").toString();
+    if(ui->comboMode->currentText().simplified() == "YSF")
+    {
+        int i = ui->comboHost->findText(saved_ysfhost);
+        ui->comboHost->setCurrentIndex(i);
+    }
+    m_settings.endGroup();
+
+    m_settings.beginGroup("P25");
+    saved_p25host = m_settings.value("P25HOST","").toString();
+    if(ui->comboMode->currentText().simplified() == "P25")
+    {
+        int i = ui->comboHost->findText(saved_p25host);
+        ui->comboHost->setCurrentIndex(i);
+    }
+    m_settings.endGroup();
+
+    m_settings.beginGroup("NXDN");
+    saved_nxdnhost = m_settings.value("NXDNHOST","").toString();
+    if(ui->comboMode->currentText().simplified() == "NXDN")
+    {
+        int i = ui->comboHost->findText(saved_nxdnhost);
+        ui->comboHost->setCurrentIndex(i);
+    }
+    m_settings.endGroup();
+
+    m_settings.beginGroup("M17");
+    saved_m17host = m_settings.value("M17HOST","").toString();
+    if(ui->comboMode->currentText().simplified() == "M17")
+    {
+        int i = ui->comboHost->findText(saved_m17host);
+        ui->comboHost->setCurrentIndex(i);
+    }
+    m_settings.endGroup();
+
+    m_settings.beginGroup("IAX");
+    ui->editIAXUsername->setText(m_settings.value("IAXUSER","").toString());
+    ui->editIAXPassword->setText(m_settings.value("IAXPASS","").toString());
+    ui->editIAXNode->setText(m_settings.value("IAXNODE","").toString());
+    ui->editIAXHost->setText(m_settings.value("IAXHOST","").toString());
+    ui->editIAXPort->setText(m_settings.value("IAXPORT","").toString());
+    m_settings.endGroup();
+
+    ui->comboHost->blockSignals(false);
+    ui->comboMode->blockSignals(false);
+}
+
+///
+/// \brief DudeStar::closeEvent
+///
+void DudeStar::closeEvent(QCloseEvent*)
+{
+    m_settings.beginGroup("MainWindow");
+    m_settings.setValue("Geometry",saveGeometry());
+    m_settings.setValue("State",saveState());
+    m_settings.endGroup();
+
+    m_settings.beginGroup("Log");
+    m_settings.setValue("MaxLine",m_maxLine);
+    m_settings.endGroup();
+
+    m_settings.beginGroup("Audio");
+    m_settings.setValue("PLAYBACK",ui->comboPlayback->currentText());
+    m_settings.setValue("CAPTURE",ui->comboCapture->currentText());
+    m_settings.setValue("MICGAIN",ui->sliderMic->value());
+    m_settings.setValue("VOLGAIN",ui->sliderVolume->value());
+    m_settings.setValue("CODECGAIN",ui->sliderCodecGain->value());
+    m_settings.endGroup();
+
+    m_settings.beginGroup("MainRadio");
+    m_settings.setValue("MODE", ui->comboMode->currentText());
+    m_settings.setValue("MODULE", ui->comboModule->currentText());
+    m_settings.setValue("CALLSIGN", ui->editCallsign->text());
+    m_settings.endGroup();
+
+    m_settings.beginGroup("DStar");
+    m_settings.setValue("MYCALL", ui->editMYCALL->text());
+    m_settings.setValue("URCALL", ui->editURCALL->text());
+    m_settings.setValue("RPTR1", ui->editRPTR1->text());
+    m_settings.setValue("RPTR2", ui->editRPTR2->text());
+    m_settings.setValue("USRTXT", ui->editUserTxt->text());
+    m_settings.endGroup();
+
+    m_settings.beginGroup("DMR");
+    m_settings.setValue("DMRID",ui->editDMRID->text());
+    m_settings.setValue("DMRHOST", saved_dmrhost);
+    m_settings.setValue("DMRPASSWORD", ui->editPassword->text());
+    m_settings.setValue("DMRTGID", ui->editTG->text());
+    m_settings.setValue("DMRLAT", ui->editLat->text());
+    m_settings.setValue("DMRLONG", ui->editLong->text());
+    m_settings.setValue("DMRLOC", ui->editLocation->text());
+    m_settings.setValue("DMRDESC", ui->editDesc->text());
+    m_settings.setValue("DMROPTS", ui->editDMROptions->text());
+    m_settings.setValue("ESSID", ui->comboESSID->currentText());
+    m_settings.endGroup();
+
+    m_settings.beginGroup("REF");
+    m_settings.setValue("REFHOST", saved_refhost);
+    m_settings.endGroup();
+
+    m_settings.beginGroup("DCS");
+    m_settings.setValue("DCSHOST",saved_dcshost);
+    m_settings.endGroup();
+
+    m_settings.beginGroup("XFR");
+    m_settings.setValue("XRFHOST", saved_xrfhost);
+    m_settings.endGroup();
+
+    m_settings.beginGroup("YSF");
+    m_settings.setValue("YSFHOST", saved_ysfhost);
+    m_settings.endGroup();
+
+    m_settings.beginGroup("P25");
+    m_settings.setValue("P25HOST", saved_p25host);
+    m_settings.endGroup();
+
+    m_settings.beginGroup("NXDN");
+    m_settings.setValue("NXDNHOST", saved_nxdnhost);
+    m_settings.endGroup();
+
+    m_settings.beginGroup("M17");
+    m_settings.setValue("M17HOST",saved_m17host);
+    m_settings.endGroup();
+
+    m_settings.beginGroup("IAX");
+    m_settings.setValue("IAXUSER", ui->editIAXUsername->text());
+    m_settings.setValue("IAXPASS", ui->editIAXPassword->text());
+    m_settings.setValue("IAXNODE", ui->editIAXNode->text());
+    m_settings.setValue("IAXHOST", ui->editIAXHost->text());
+    m_settings.setValue("IAXPORT", ui->editIAXPort->text());
+    m_settings.endGroup();
+}
+
+///
+/// \brief MainWindow::onLog
+/// \param Texte
+/// \param pColor
+/// \param pLevel
+///
+/// Redirect Log Text flow to Plain Text Edit on main Window
+///
+void DudeStar::onLog (const QString& pMessage, QColor pColor, CL_DEBUG_LEVEL)
+{
+    QTextCharFormat fmt;
+    fmt.setForeground(QBrush(pColor));
+    ui->pteLogger->mergeCurrentCharFormat(fmt);
+    ui->pteLogger->appendPlainText(pMessage);
+}
+
+void DudeStar::on_rb_filterNone_toggled(bool checked)
+{
+    if (checked) m_log->setDebugLevel(LEVEL_NONE);
+}
+
+void DudeStar::on_rb_filterNormal_toggled(bool checked)
+{
+    if (checked) m_log->setDebugLevel(LEVEL_NORMAL);
+}
+
+void DudeStar::on_rb_filterVerbose_toggled(bool checked)
+{
+    if (checked) m_log->setDebugLevel(LEVEL_VERBOSE);
+}
+
+///
+/// \brief DudeStar::on_pteLogger_customContextMenuRequested
+/// \param pos
+///
+void DudeStar::on_pteLogger_customContextMenuRequested(const QPoint &pos)
+{
+    QMenu *menu = ui->pteLogger->createStandardContextMenu();
+    // Handle global position
+    QPoint globalPos = ui->pteLogger->mapToGlobal(pos);
+    menu->addAction(tr("Clear"),this,SLOT(clearLog()));
+    menu->addAction(tr("Save"),this,SLOT(saveLog()));
+    menu->exec(globalPos);
+    delete menu;
+}
+
+///
+/// \brief DudeStar::clearLog
+///
+void DudeStar::clearLog()
+{
+    ui->pteLogger->clear();
+}
+
+///
+/// \brief DudeStar::saveLog
+///
+void DudeStar::saveLog()
+{
+    QFileDialog FileDlg(this);
+    QString File;
+    FileDlg.setAcceptMode(QFileDialog::AcceptSave);
+    FileDlg.setDefaultSuffix("htm");
+    FileDlg.setNameFilter(tr("Web File (*.htm *.html)"));
+    if (FileDlg.exec())
+    {
+        File = FileDlg.selectedFiles().first();
+        if (!File.isEmpty())
+        {
+            QTextDocument* Doc = ui->pteLogger->document();
+            QFile document (File);
+            if(!document.open(QFile::WriteOnly | QFile::Text))
+            {
+                m_log->log(tr("An Error occur while opening ") + document.fileName(),Qt::darkMagenta);
+                return;
+            }
+            QTextStream writer (&document);
+            writer << Doc->toHtml();
+        }
+    }
+}

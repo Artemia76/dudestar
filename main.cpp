@@ -19,6 +19,7 @@
 #include <QApplication>
 #include <QStyleFactory>
 #include <QTranslator>
+#include <QSettings>
 
 #ifdef Q_OS_MACOS
     #include "tools/keepalive.h"
@@ -30,6 +31,10 @@ int main(int argc, char *argv[])
     KeepAlive kalive;
 #endif
     QApplication::setStyle("fusion");
+    QCoreApplication::setOrganizationName("F4IKZ");
+    QCoreApplication::setOrganizationDomain("F4IKZ");
+    QCoreApplication::setApplicationName("Dudestar");
+    QSettings settings;
     QString locale = QLocale::system().name();
     QApplication a(argc, argv);
     QDir::setCurrent(a.applicationDirPath());
