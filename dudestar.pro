@@ -79,7 +79,11 @@ macx {
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10
     QT_CONFIG -= no-pkg-config
 
+    #add /usr/local scope which is not included by default on osx
+    INCLUDEPATH += /usr/local/include
+    LIBS += -L/usr/local/lib
     LIBS += -framework CoreFoundation
+    LIBS += -lsamplerate
     isEmpty(GIT_PATH) : GIT_PATH=git
 }
 
@@ -293,7 +297,7 @@ unix:!macx {
 
 # Mac OS X - Copy help and Marble plugins and data
 macx {
-    copydata.commands += cp -vf $$PWD/translations/*.qm $$OUT_PWD/easymorse.app/Contents/Resources
+    copydata.commands += cp -vf $$PWD/translations/*.qm $$OUT_PWD/dudestar.app/Contents/Resources
 }
 
 #Windows - Copy Qt Style and translation
